@@ -54,12 +54,12 @@ function FeatureCard({
 
 function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
     return (
-        <div className="bg-card p-6 rounded-lg shadow-sm flex flex-col items-center text-center">
+        <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-white flex flex-col items-center text-center">
             <div className="text-accent mb-2">
                 {icon}
             </div>
-            <p className="text-4xl font-bold font-headline">{value}</p>
-            <p className="text-muted-foreground uppercase text-sm tracking-widest">{label}</p>
+            <p className="text-3xl md:text-4xl font-bold font-headline">{value}</p>
+            <p className="text-white/80 uppercase text-xs md:text-sm tracking-widest">{label}</p>
         </div>
     )
 }
@@ -88,7 +88,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative h-[60vh] md:h-[80vh] flex items-center justify-center text-center overflow-hidden">
+        <section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center overflow-hidden">
            <Carousel 
             opts={{ loop: true }}
             plugins={[
@@ -113,31 +113,30 @@ export default function LandingPage() {
                 </CarouselContent>
             </Carousel>
            <div className="absolute inset-0 bg-black/50" />
-          <div className="container relative z-10 text-white">
-            <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight drop-shadow-md">
-              The Future of Accounting is Here
-            </h1>
-            <p className="mt-4 md:text-xl text-lg text-muted-foreground max-w-2xl mx-auto drop-shadow-sm text-gray-200">
-              FinTrack AI provides smart, AI-powered tools to manage your
-              finances, from invoicing to real-time reporting.
-            </p>
-            <div className="mt-8 flex justify-center">
-              <Button size="lg" asChild>
-                <Link href="/login">Get Started for Free</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section id="stats" className="py-20">
-            <div className="container">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <StatCard icon={<Users className="h-10 w-10"/>} value="10,000+" label="Active Users" />
-                    <StatCard icon={<FileText className="h-10 w-10"/>} value="500,000+" label="Invoices Generated" />
-                    <StatCard icon={<TrendingUp className="h-10 w-10"/>} value="1.2M+" label="Transactions Processed" />
+          <div className="container relative z-10 text-white flex flex-col justify-center h-full">
+            <div className="flex-grow flex flex-col items-center justify-center">
+                <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight drop-shadow-md">
+                The Future of Accounting is Here
+                </h1>
+                <p className="mt-4 md:text-xl text-lg max-w-2xl mx-auto drop-shadow-sm text-gray-200">
+                FinTrack AI provides smart, AI-powered tools to manage your
+                finances, from invoicing to real-time reporting.
+                </p>
+                <div className="mt-8 flex justify-center">
+                <Button size="lg" asChild>
+                    <Link href="/login">Get Started for Free</Link>
+                </Button>
                 </div>
             </div>
+            {/* Stats Overlay */}
+            <div className="w-full pb-8 md:pb-12">
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto">
+                    <StatCard icon={<Users className="h-8 w-8 md:h-10 md:w-10"/>} value="10,000+" label="Active Users" />
+                    <StatCard icon={<FileText className="h-8 w-8 md:h-10 md:w-10"/>} value="500k+" label="Invoices Generated" />
+                    <StatCard icon={<TrendingUp className="h-8 w-8 md:h-10 md:w-10"/>} value="1.2M+" label="Transactions" />
+                </div>
+            </div>
+          </div>
         </section>
 
 
