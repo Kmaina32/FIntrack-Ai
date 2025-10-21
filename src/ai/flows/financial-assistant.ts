@@ -1,10 +1,11 @@
+
 'use server';
 /**
  * @fileOverview A financial assistant AI agent that can use tools to answer questions.
  */
 
 import { ai } from '@/ai/genkit';
-import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { db } from '@/lib/firebase-admin';
 import { z } from 'genkit';
 
 // Define schemas for tool inputs and outputs
@@ -27,7 +28,6 @@ const getTransactions = ai.defineTool(
     if (!context?.auth?.userId) {
         throw new Error('User not authenticated');
     }
-    const { db } = getFirebaseAdmin();
     let query: FirebaseFirestore.Query = db.collection('users').doc(context.auth.userId).collection('transactions');
 
     if (input.startDate) {
@@ -59,7 +59,6 @@ const getAccounts = ai.defineTool(
     if (!context?.auth?.userId) {
         throw new Error('User not authenticated');
     }
-    const { db } = getFirebaseAdmin();
     const snapshot = await db.collection('users').doc(context.auth.userId).collection('accounts').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
@@ -76,7 +75,6 @@ const getCustomers = ai.defineTool(
     if (!context?.auth?.userId) {
         throw new Error('User not authenticated');
     }
-    const { db } = getFirebaseAdmin();
     const snapshot = await db.collection('users').doc(context.auth.userId).collection('customers').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }

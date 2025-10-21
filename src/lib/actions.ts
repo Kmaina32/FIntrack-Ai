@@ -1,9 +1,10 @@
+
 'use server';
 
 import { analyzeReceipt } from "@/ai/flows/ai-analyze-receipt";
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
 import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financial-assistant";
-import { getFirebaseAdmin } from "./firebase-admin";
+import { auth, db } from "./firebase-admin";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
 import type { ChatMessage, Employee, Invoice, Product, Sale, Transaction } from "./types";
@@ -14,7 +15,6 @@ async function getUserId(idToken: string | null | undefined): Promise<string> {
   if (!idToken) {
     throw new Error('User not authenticated, no ID token provided.');
   }
-  const { auth } = getFirebaseAdmin();
   try {
     const decodedToken: DecodedIdToken = await auth.verifyIdToken(idToken);
     return decodedToken.uid;
@@ -52,7 +52,6 @@ export async function handleAiCategorize(
 
 export async function handleUpdateTransactionCategory(transactionId: string, account: string, idToken: string) {
   const userId = await getUserId(idToken);
-  const { db } = getFirebaseAdmin();
 
   try {
     const transactionRef = db.collection('users').doc(userId).collection('transactions').doc(transactionId);
@@ -67,7 +66,6 @@ export async function handleUpdateTransactionCategory(transactionId: string, acc
 
 export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>, idToken: string) {
     const userId = await getUserId(idToken);
-    const { db } = getFirebaseAdmin();
     
     try {
         const newTransaction = {
@@ -88,7 +86,6 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
 
 export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId' | 'invoiceNumber'>, idToken: string) {
   const userId = await getUserId(idToken);
-  const { db } = getFirebaseAdmin();
 
   try {
     const orgRef = db.collection('users').doc(userId);
@@ -130,7 +127,6 @@ export async function handleAiQuery(
 
 export async function handleAddProduct(product: Omit<Product, 'id'>, idToken: string) {
   const userId = await getUserId(idToken);
-  const { db } = getFirebaseAdmin();
 
   try {
     const productRef = await db.collection('users').doc(userId).collection('products').add(product);
@@ -143,7 +139,6 @@ export async function handleAddProduct(product: Omit<Product, 'id'>, idToken: st
 
 export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idToken: string) {
   const userId = await getUserId(idToken);
-  const { db } = getFirebaseAdmin();
   const batch: WriteBatch = db.batch();
 
   try {
@@ -183,7 +178,6 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
 
 export async function handleAddChatMessage(message: Omit<ChatMessage, 'id' | 'userId' | 'createdAt'>, idToken: string) {
     const userId = await getUserId(idToken);
-    const { db } = getFirebaseAdmin();
 
     try {
         const newMessage = {
@@ -201,7 +195,6 @@ export async function handleAddChatMessage(message: Omit<ChatMessage, 'id' | 'us
 
 export async function handleRunPayroll() {
     const userId = await getUserIdFromHeaders();
-    const { db } = getFirebaseAdmin();
     const batch = db.batch();
 
     try {
