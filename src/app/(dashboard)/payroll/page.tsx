@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,12 +6,11 @@ import { collection, query, orderBy } from "firebase/firestore";
 import type { Employee, PayrollRun } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardHeader } from "@/components/dashboard-header";
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Rocket } from 'lucide-react';
 import { AddEmployeeSheet } from '@/components/payroll/add-employee-sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeesTable } from '@/components/payroll/employees-table';
 import { PayrollHistoryTable } from '@/components/payroll/payroll-history-table';
+import { RunPayrollDialog } from '@/components/payroll/run-payroll-dialog';
 
 export default function PayrollPage() {
   const { firestore, user } = useFirebase();
@@ -38,9 +36,7 @@ export default function PayrollPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <DashboardHeader title="Payroll">
-        <Button disabled>
-            <Rocket className="mr-2 h-4 w-4" /> Run Payroll
-        </Button>
+        <RunPayrollDialog activeEmployees={employees?.filter(e => e.status === 'Active') || []} />
         {activeTab === 'employees' && <AddEmployeeSheet />}
       </DashboardHeader>
       

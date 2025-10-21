@@ -1,12 +1,12 @@
-
 'use server';
 
+import { analyzeReceipt } from "@/ai/flows/ai-analyze-receipt";
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
 import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financial-assistant";
 import { getFirebaseAdmin } from "./firebase-admin";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
-import type { ChatMessage, Invoice, Product, Sale, Transaction } from "./types";
+import type { ChatMessage, Employee, Invoice, Product, Sale, Transaction } from "./types";
 import { FieldValue, Timestamp, WriteBatch } from "firebase-admin/firestore";
 
 
@@ -25,7 +25,7 @@ async function getUserId(idToken: string | null | undefined): Promise<string> {
 }
 
 async function getUserIdFromHeaders(): Promise<string> {
-  const heads = await headers();
+  const heads = headers();
   const idToken = heads.get('Authorization')?.split('Bearer ')[1];
   return getUserId(idToken);
 }
@@ -196,5 +196,59 @@ export async function handleAddChatMessage(message: Omit<ChatMessage, 'id' | 'us
     } catch (error) {
         console.error("Error adding chat message:", error);
         throw new Error("Failed to add chat message.");
+    }
+}
+
+export async function handleRunPayroll(idToken: string) {
+    const userId = await getUserId(idToken);
+    const { db } = getFirebaseAdmin();
+    const batch = db.batch();
+
+    try {
+        const employeesRef = db.collection('users').doc(userId).collection('employees');
+        const activeEmployeesSnapshot = await employeesRef.where('status', '==', 'Active').get();
+
+        if (activeEmployeesSnapshot.empty) {
+            throw new Error("No active employees to pay.");
+        }
+
+        const employees = activeEmployeesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
+        
+        let totalPayrollCost = 0;
+        employees.forEach(employee => {
+            // Simplified calculation: assumes salary is for a 2-week period, and hourly is for 80 hours.
+            if (employee.payType === 'Salary') {
+                totalPayrollCost += employee.payRate / 26; // Bi-weekly pay for salaried
+            } else {
+                totalPayrollCost += employee.payRate * 80; // Assuming 80 hours for a bi-weekly period
+            }
+        });
+
+        // 1. Create a single transaction for the total payroll amount
+        const transactionRef = db.collection('users').doc(userId).collection('transactions').doc();
+        batch.set(transactionRef, {
+            userId,
+            date: new Date(),
+            description: `Payroll Run - ${new Date().toLocaleDateString()}`,
+            amount: -totalPayrollCost,
+            type: 'Expense',
+            account: 'Payroll Expenses',
+        });
+
+        // 2. Create a record for this payroll run
+        const payrollRunRef = db.collection('users').doc(userId).collection('payrollRuns').doc();
+        batch.set(payrollRunRef, {
+            userId,
+            runDate: new Date(),
+            employeeCount: employees.length,
+            totalAmount: totalPayrollCost,
+        });
+
+        await batch.commit();
+
+        return { success: true, payrollRunId: payrollRunRef.id, totalAmount: totalPayrollCost };
+    } catch (error: any) {
+        console.error("Error running payroll:", error);
+        throw new Error(error.message || "Failed to run payroll.");
     }
 }
