@@ -63,38 +63,40 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="container grid lg:grid-cols-2 gap-12 items-center py-20 md:py-32 px-4 md:px-6">
-          <div className="flex flex-col items-start text-left px-4 md:px-6">
-            <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
-              The Future of Accounting is Here
-            </h1>
-            <p className="mt-4 md:text-xl text-lg max-w-2xl text-muted-foreground">
-              FinTrack AI provides smart, AI-powered tools to manage your
-              finances, from invoicing to real-time reporting.
-            </p>
-            <div className="mt-8 flex justify-center">
-              <Button size="lg" asChild>
-                <Link href="/login">Get Started for Free</Link>
-              </Button>
+        <section className="container relative py-20 md:py-32 px-4 md:px-6">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="relative z-10 flex flex-col items-start text-left px-4 md:px-6">
+              <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
+                The Future of Accounting is Here
+              </h1>
+              <p className="mt-4 md:text-xl text-lg max-w-2xl text-muted-foreground">
+                FinTrack AI provides smart, AI-powered tools to manage your
+                finances, from invoicing to real-time reporting.
+              </p>
+              <div className="mt-8 flex justify-center">
+                <Button size="lg" asChild>
+                  <Link href="/login">Get Started for Free</Link>
+                </Button>
+              </div>
+               <div className="w-full pt-12">
+                   <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-4xl">
+                      <StatCard icon={<Users className="h-6 w-6 md:h-8 md:w-8"/>} value="10k+" label="Users" />
+                      <StatCard icon={<FileText className="h-6 w-6 md:h-8 md:w-8"/>} value="500k+" label="Invoices" />
+                      <StatCard icon={<TrendingUp className="h-6 w-6 md:h-8 md:w-8"/>} value="1.2M+" label="Transactions" />
+                  </div>
+              </div>
             </div>
-             <div className="w-full pt-12">
-                 <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-4xl">
-                    <StatCard icon={<Users className="h-6 w-6 md:h-8 md:w-8"/>} value="10k+" label="Users" />
-                    <StatCard icon={<FileText className="h-6 w-6 md:h-8 md:w-8"/>} value="500k+" label="Invoices" />
-                    <StatCard icon={<TrendingUp className="h-6 w-6 md:h-8 md:w-8"/>} value="1.2M+" label="Transactions" />
-                </div>
-            </div>
+             <div className="absolute inset-0 lg:relative w-full h-full lg:h-[60vh] rounded-lg overflow-hidden shadow-2xl px-4 md:px-6">
+                  <Image 
+                      src="https://www.accountsjunction.com/BlogImg/artificial-intelligence-in-accounting.jpg_1754046459.jpg"
+                      alt="AI in accounting"
+                      fill
+                      className="object-cover"
+                      data-ai-hint="ai accounting"
+                  />
+                 <div className="absolute inset-0 bg-black/40 lg:bg-gradient-to-t from-black/20 to-transparent" />
+             </div>
           </div>
-           <div className="relative w-full h-[60vh] rounded-lg overflow-hidden shadow-2xl px-4 md:px-6">
-                <Image 
-                    src="https://www.accountsjunction.com/BlogImg/artificial-intelligence-in-accounting.jpg_1754046459.jpg"
-                    alt="AI in accounting"
-                    fill
-                    className="object-cover"
-                    data-ai-hint="ai accounting"
-                />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-           </div>
         </section>
 
 
