@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { UserRole } from '@/lib/types';
+import type { User, UserRole } from '@/lib/types';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
@@ -29,13 +29,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 const PAGE_SIZE = 10;
 
-export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
+interface TeamTableProps {
+  initialMembers: UserRole[];
+  currentUserRole?: User['role'];
+}
+
+export function TeamTable({ initialMembers, currentUserRole }: TeamTableProps) {
   const [members, setMembers] = React.useState(initialMembers);
   const [currentPage, setCurrentPage] = React.useState(1);
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const isMobile = useIsMobile();
-  const currentUserRole = (user as any)?.role;
 
   React.useEffect(() => {
     setMembers(initialMembers);

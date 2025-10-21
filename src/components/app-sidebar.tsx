@@ -22,8 +22,7 @@ import {
   ReceiptText,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
-import { useUser } from '@/firebase';
-import type { UserRole } from '@/lib/types';
+import type { User } from '@/lib/types';
 
 
 const menuItems = [
@@ -77,10 +76,9 @@ const adminMenuItems = [
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: User | null }) {
   const pathname = usePathname();
-  const { user } = useUser();
-  const userRole = (user as any)?.role;
+  const userRole = user?.role;
 
   const isAdmin = userRole === 'Owner' || userRole === 'Admin';
 

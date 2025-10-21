@@ -8,10 +8,11 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import React, { useEffect, useState } from 'react';
-import { useUser, useFirebase, useMemoFirebase } from '@/firebase';
+import { useUser, useFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
+import type { User as AppUser } from '@/lib/types';
 
 export default function DashboardLayout({
   children,
@@ -21,7 +22,7 @@ export default function DashboardLayout({
   const { user: authUser, isUserLoading: isAuthUserLoading } = useUser();
   const { firestore } = useFirebase();
   const router = useRouter();
-  const [userWithRole, setUserWithRole] = useState<any>(null);
+  const [userWithRole, setUserWithRole] = useState<AppUser | null>(null);
   const [isRoleLoading, setIsRoleLoading] = useState(true);
 
   useEffect(() => {
@@ -30,14 +31,27 @@ export default function DashboardLayout({
     } else if (authUser && firestore) {
       const fetchUserRole = async () => {
         setIsRoleLoading(true);
-        const userRef = doc(firestore, 'users', authUser.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          setUserWithRole({ ...authUser, ...userDoc.data() });
-        } else {
-          setUserWithRole(authUser); // Fallback to auth user if no DB record
+        try {
+          const userRef = doc(firestore, 'users', authUser.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            // Combine auth data with firestore data (which contains the role)
+            const userData = {
+                id: authUser.uid,
+                email: authUser.email!,
+                ...userDoc.data(),
+            } as AppUser;
+            setUserWithRole(userData);
+          } else {
+            // If no user document, they might be a new user. Fallback to authUser without a role.
+            setUserWithRole({ id: authUser.uid, email: authUser.email! });
+          }
+        } catch (error) {
+            console.error("Error fetching user role:", error);
+            setUserWithRole({ id: authUser.uid, email: authUser.email! }); // Fallback on error
+        } finally {
+            setIsRoleLoading(false);
         }
-        setIsRoleLoading(false);
       };
       fetchUserRole();
     }
@@ -54,13 +68,14 @@ export default function DashboardLayout({
   }
 
   if (!userWithRole) {
+    // This case will be hit briefly during the redirect if not authenticated.
     return null;
   }
 
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
-        <AppSidebar />
+        <AppSidebar user={userWithRole} />
       </Sidebar>
       <SidebarInset>
         {children}
