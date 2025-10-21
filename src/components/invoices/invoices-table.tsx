@@ -19,15 +19,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 const PAGE_SIZE = 10;
 
@@ -47,6 +49,20 @@ export function InvoicesTable({ initialInvoices }: { initialInvoices: Invoice[] 
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   );
+
+  const handleUpdateStatus = async (invoiceId: string, status: Invoice['status']) => {
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to update an invoice.' });
+        return;
+    }
+    try {
+        await updateDoc(doc(firestore, `users/${user.uid}/invoices`, invoiceId), { status });
+        toast({ title: 'Success', description: `Invoice marked as ${status}.` });
+    } catch (error) {
+        console.error("Error updating invoice status: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update invoice status.' });
+    }
+  };
 
   const handleDelete = async (invoiceId: string) => {
     if (!user) {
@@ -101,7 +117,11 @@ export function InvoicesTable({ initialInvoices }: { initialInvoices: Invoice[] 
             {paginatedInvoices.map(invoice => (
                 <Card key={invoice.id}>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-base font-medium">{invoice.invoiceNumber}</CardTitle>
+                        <CardTitle className="text-base font-medium">
+                            <Link href={`/invoices/${invoice.id}`} className="hover:underline">
+                                {invoice.invoiceNumber}
+                            </Link>
+                        </CardTitle>
                         <span className="text-sm font-bold">{formatCurrency(invoice.totalAmount)}</span>
                     </CardHeader>
                     <CardContent className="text-sm space-y-2">
@@ -120,8 +140,14 @@ export function InvoicesTable({ initialInvoices }: { initialInvoices: Invoice[] 
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem disabled>View</DropdownMenuItem>
-                                <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/invoices/${invoice.id}`}>View</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Void')}>Mark as Void</DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -152,7 +178,11 @@ export function InvoicesTable({ initialInvoices }: { initialInvoices: Invoice[] 
           <TableBody>
             {paginatedInvoices.map((invoice) => (
               <TableRow key={invoice.id}>
-                <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                <TableCell className="font-medium">
+                     <Link href={`/invoices/${invoice.id}`} className="hover:underline">
+                        {invoice.invoiceNumber}
+                    </Link>
+                </TableCell>
                 <TableCell>{invoice.customerName || 'N/A'}</TableCell>
                 <TableCell>{formatDate(invoice.issueDate)}</TableCell>
                 <TableCell>{formatDate(invoice.dueDate)}</TableCell>
@@ -172,8 +202,14 @@ export function InvoicesTable({ initialInvoices }: { initialInvoices: Invoice[] 
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem disabled>View</DropdownMenuItem>
-                        <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/invoices/${invoice.id}`}>View</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(invoice.id, 'Void')}>Mark as Void</DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(invoice.id)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

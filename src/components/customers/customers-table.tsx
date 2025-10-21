@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -89,12 +90,7 @@ export function CustomersTable({ initialCustomers }: { initialCustomers: Custome
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                                onClick={() => navigator.clipboard.writeText(customer.id)}
-                            >
-                                Copy customer ID
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem disabled>Edit</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(customer.id)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -141,12 +137,7 @@ export function CustomersTable({ initialCustomers }: { initialCustomers: Custome
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                            onClick={() => navigator.clipboard.writeText(customer.id)}
-                        >
-                            Copy customer ID
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Edit</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(customer.id)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -160,4 +151,3 @@ export function CustomersTable({ initialCustomers }: { initialCustomers: Custome
     </>
   );
 }
-    
