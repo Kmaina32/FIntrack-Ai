@@ -18,6 +18,7 @@ import {
   BarChart3,
   LogOut,
   BookUser,
+  Users,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { useAuth, useUser } from '@/firebase';
@@ -39,6 +40,11 @@ const menuItems = [
     href: '/accounts',
     label: 'Accounts',
     icon: BookUser,
+  },
+   {
+    href: '/customers',
+    label: 'Customers',
+    icon: Users,
   },
   {
     href: '/reports',

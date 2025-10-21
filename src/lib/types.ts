@@ -48,4 +48,13 @@ export type Account = {
   description?: string;
   type: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
 };
+
+export type Customer = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  address?: string;
+  phone?: string;
+};
     
