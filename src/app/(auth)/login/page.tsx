@@ -265,7 +265,7 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:block relative">
         <Image
-          src="https://picsum.photos/seed/3/1200/1080"
+          src="https://corizo.in/wp-content/uploads/2024/11/Finances-stock-image_-Image-of-finances-chart-banking-15530201.jpg"
           alt="Abstract art with financial charts"
           width="1200"
           height="1080"

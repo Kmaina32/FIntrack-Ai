@@ -40,6 +40,12 @@ const nextConfig: NextConfig = {
         hostname: 'www.accountsjunction.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'corizo.in',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
