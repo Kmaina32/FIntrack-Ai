@@ -112,7 +112,7 @@ export function AccountsTable({ initialAccounts }: { initialAccounts: Account[] 
                             >
                                 Copy account ID
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem disabled>Edit</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(account.id)}>Delete</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -167,7 +167,7 @@ export function AccountsTable({ initialAccounts }: { initialAccounts: Account[] 
                         >
                             Copy account ID
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Edit</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(account.id)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

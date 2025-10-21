@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirebase } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import type { Account } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 
@@ -33,7 +33,6 @@ export function AddAccountSheet() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
-  const auth = useAuth();
   const { firestore, user } = useFirebase();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
