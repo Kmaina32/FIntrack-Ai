@@ -35,6 +35,7 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
   const isMobile = useIsMobile();
+  const currentUserRole = (user as any)?.role;
 
   React.useEffect(() => {
     setMembers(initialMembers);
@@ -96,14 +97,14 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
                         <CardTitle className="text-base font-medium truncate">{member.email}</CardTitle>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                            <Button variant="ghost" className="h-8 w-8 p-0" disabled={member.role === 'Owner' || currentUserRole !== 'Owner'}>
                                 <span className="sr-only">Open menu</span>
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                            <DropdownMenuItem disabled>Edit Role</DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(member.id)}>Remove Member</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -144,14 +145,14 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
                 <TableCell className="text-right">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                        <Button variant="ghost" className="h-8 w-8 p-0" disabled={member.role === 'Owner' || currentUserRole !== 'Owner'}>
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Edit Role</DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(member.id)}>Remove Member</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -165,4 +166,3 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
     </>
   );
 }
-    

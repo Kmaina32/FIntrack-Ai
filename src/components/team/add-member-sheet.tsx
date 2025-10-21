@@ -27,7 +27,7 @@ import { useFirebase } from '@/firebase';
 import type { UserRole } from '@/lib/types';
 import { addDoc, collection } from 'firebase/firestore';
 
-const userRoles: UserRole['role'][] = ['Admin', 'Accountant', 'Viewer'];
+const userRoles: Exclude<UserRole['role'], 'Owner'>[] = ['Admin', 'Accountant', 'Viewer'];
 
 export function AddMemberSheet() {
   const { toast } = useToast();
@@ -47,16 +47,16 @@ export function AddMemberSheet() {
     
     try {
       // In a real app, this would trigger an invitation flow.
-      // For now, we'll just add the role directly.
-      await addDoc(collection(firestore, `users/${user.uid}/userRoles`), {
-        userId: user.uid,
-        email,
-        role,
+      // For now, we'll just add the role directly. A user must then sign up with this email.
+      const userRolesRef = collection(firestore, `users/${user.uid}/userRoles`);
+      await addDoc(userRolesRef, {
+        email: email.toLowerCase(),
+        role: role,
       });
       
       toast({
         title: "Member Invited",
-        description: `${email} has been invited as a(n) ${role}.`,
+        description: `${email} has been invited as a(n) ${role}. They will gain access after signing up.`,
       });
 
       formRef.current?.reset();
@@ -85,7 +85,7 @@ export function AddMemberSheet() {
           <SheetHeader>
             <SheetTitle className="font-headline">Invite Team Member</SheetTitle>
             <SheetDescription>
-              Invite a new member to your team by email.
+              Invite a new member to your team by email. They will gain access once they sign up with this email.
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
