@@ -4,6 +4,7 @@ import { Timestamp } from "firebase/firestore";
 
 export type Transaction = {
   id: string;
+  userId: string;
   date: Timestamp | Date | string;
   description: string;
   amount: number;

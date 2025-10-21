@@ -71,6 +71,10 @@
           "type": "string",
           "description": "Unique identifier for the Transaction entity."
         },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Transaction)"
+        },
         "bankAccountId": {
           "type": "string",
           "description": "Reference to BankAccount. (Relationship: BankAccount 1:N Transaction)"
@@ -99,7 +103,7 @@
       },
       "required": [
         "id",
-        "bankAccountId",
+        "userId",
         "date",
         "description",
         "amount",

@@ -65,6 +65,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
     try {
         const newTransaction = {
             ...transaction,
+            userId,
             amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
             date: transaction.date ? new Date(transaction.date) : FieldValue.serverTimestamp()
         };
@@ -160,6 +161,7 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
       type: 'Income',
       account: 'Sales Revenue', // Assuming a default account
       date: new Date(),
+      userId,
     };
     const transactionRef = db.collection('users').doc(userId).collection('transactions').doc();
     batch.set(transactionRef, transaction);
