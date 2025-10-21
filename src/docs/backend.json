@@ -131,6 +131,109 @@
         "name",
         "type"
       ]
+    },
+    "Customer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Customer",
+      "type": "object",
+      "description": "Represents a customer or client.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Customer entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Customer)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the customer."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the customer.",
+          "format": "email"
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical or mailing address of the customer."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the customer."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "email"
+      ]
+    },
+    "Vendor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Vendor",
+      "type": "object",
+      "description": "Represents a vendor or supplier.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Vendor entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Vendor)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the vendor."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the vendor.",
+          "format": "email"
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical or mailing address of the vendor."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the vendor."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name"
+      ]
+    },
+    "Receipt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Receipt",
+      "description": "Represents the data extracted from a receipt image.",
+      "type": "object",
+      "properties": {
+        "vendorName": {
+          "type": "string",
+          "description": "The name of the vendor or store from the receipt."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date of the transaction in YYYY-MM-DD format.",
+          "format": "date"
+        },
+        "description": {
+          "type": "string",
+          "description": "A short description of the items purchased."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the transaction."
+        }
+      },
+      "required": ["vendorName", "transactionDate", "description", "totalAmount"]
     }
   },
   "auth": {
@@ -192,10 +295,6 @@
               "description": "The unique identifier for the user."
             },
             {
-              "name": "bankAccountId",
-              "description": "The unique identifier for the bank account."
-            },
-            {
               "name": "transactionId",
               "description": "The unique identifier for the transaction."
             }
@@ -221,9 +320,48 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/customers/{customerId}",
+        "definition": {
+          "entityName": "Customer",
+          "schema": {
+            "$ref": "#/backend/entities/Customer"
+          },
+          "description": "Stores customer information for a specific user. Path-based ownership is implemented.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "customerId",
+              "description": "The unique identifier for the customer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/vendors/{vendorId}",
+        "definition": {
+          "entityName": "Vendor",
+          "schema": {
+            "$ref": "#/backend/entities/Vendor"
+          },
+          "description": "Stores vendor information for a specific user. Path-based ownership is implemented.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "vendorId",
+              "description": "The unique identifier for the vendor."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the FinTrack AI application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It leverages structural segregation by using dedicated collections for each entity type, and consistent access modeling via path-based ownership for user-related data. \n\nAuthorization Independence is achieved by associating each BankAccount, Transaction, and Account with the userId via hierarchical paths (`/users/{userId}/bankAccounts/{bankAccountId}`, `/users/{userId}/accounts/{accountId}`, and `/users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}`). This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability.\n\nThe structure supports the required QAPs by ensuring that list operations can be secured effectively. Since all documents within a collection share the same security requirements (e.g., only the user can access their own bank accounts), rules can be written to allow listing only if `request.auth.uid == userId` without needing to filter based on document content."
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the FinTrack AI application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It leverages structural segregation by using dedicated collections for each entity type, and consistent access modeling via path-based ownership for user-related data. \n\nAuthorization Independence is achieved by associating each BankAccount, Transaction, Account, Customer, and Vendor with the userId via hierarchical paths. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability.\n\nThe structure supports the required QAPs by ensuring that list operations can be secured effectively. Since all documents within a collection share the same security requirements (e.g., only the user can access their own data), rules can be written to allow listing only if `request.auth.uid == userId` without needing to filter based on document content."
   }
 }
-    

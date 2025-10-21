@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, PlusCircle, Upload } from "lucide-react";
 import { TransactionsTable } from "@/components/transactions/transactions-table";
 import { AddTransactionSheet } from "@/components/transactions/add-transaction-sheet";
+import { ImportReceiptSheet } from "@/components/transactions/import-receipt-sheet";
 import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import type { Transaction } from "@/lib/types";
@@ -28,10 +29,7 @@ export default function TransactionsPage() {
           Transactions
         </h1>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Upload className="mr-2 h-4 w-4" />
-            Import Statement
-          </Button>
+          <ImportReceiptSheet />
           <AddTransactionSheet />
           <Button>
             <Download className="mr-2 h-4 w-4" />

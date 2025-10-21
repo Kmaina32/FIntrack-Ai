@@ -66,4 +66,11 @@ export type Vendor = {
   address?: string;
   phone?: string;
 };
+
+export type ReceiptData = {
+  vendorName: string;
+  transactionDate: string;
+  description: string;
+  totalAmount: number;
+};
     

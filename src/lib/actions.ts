@@ -2,6 +2,7 @@
 
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
 import { aiQueryFinancialData, AIQueryFinancialDataInput } from "@/ai/flows/ai-query-financial-data";
+import { analyzeReceipt, AnalyzeReceiptInput } from "@/ai/flows/ai-analyze-receipt";
 import { getFirebaseAdmin } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -64,7 +65,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
         const newTransaction = {
             ...transaction,
             amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
-            date: FieldValue.serverTimestamp()
+            date: transaction.date ? new Date(transaction.date) : FieldValue.serverTimestamp()
         };
 
         const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(newTransaction);
@@ -87,6 +88,18 @@ export async function handleAiQuery(
   } catch (error) {
     console.error("Error querying financial data:", error);
     return { answer: "Sorry, I encountered an error while processing your request." };
+  }
+}
+
+export async function handleAnalyzeReceipt(
+  input: AnalyzeReceiptInput
+) {
+  try {
+    const result = await analyzeReceipt(input);
+    return result;
+  } catch (error) {
+    console.error("Error analyzing receipt:", error);
+    return { error: "Failed to analyze receipt." };
   }
 }
     
