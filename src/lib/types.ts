@@ -82,4 +82,11 @@ export type Project = {
     description?: string;
     status: 'Not Started' | 'In Progress' | 'Completed' | 'On Hold';
 };
+
+export type UserRole = {
+    id: string;
+    userId: string;
+    email: string;
+    role: 'Owner' | 'Admin' | 'Accountant' | 'Viewer';
+};
     

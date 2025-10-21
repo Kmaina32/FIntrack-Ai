@@ -268,6 +268,29 @@
         }
       },
       "required": ["id", "userId", "name", "status"]
+    },
+    "UserRole": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserRole",
+      "description": "Represents the role of a user within a team or workspace.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserRole, typically the user's UID."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "role": {
+            "type": "string",
+            "description": "The role assigned to the user.",
+            "enum": ["Owner", "Admin", "Accountant", "Viewer"]
+        }
+      },
+      "required": ["id", "email", "role"]
     }
   },
   "auth": {
@@ -411,6 +434,26 @@
             {
               "name": "projectId",
               "description": "The unique identifier for the project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/userRoles/{userRoleId}",
+        "definition": {
+          "entityName": "UserRole",
+          "schema": {
+            "$ref": "#/backend/entities/UserRole"
+          },
+          "description": "Stores user roles for a specific user's team.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user (team owner)."
+            },
+            {
+              "name": "userRoleId",
+              "description": "The unique identifier for the team member's role."
             }
           ]
         }

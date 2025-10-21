@@ -21,6 +21,7 @@ import {
   Users,
   Store,
   Briefcase,
+  Users2,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { useAuth, useUser } from '@/firebase';
@@ -63,6 +64,11 @@ const menuItems = [
     label: 'Reports',
     icon: BarChart3,
   },
+  {
+    href: '/team',
+    label: 'Team',
+    icon: Users2,
+  }
 ];
 
 export function AppSidebar() {
