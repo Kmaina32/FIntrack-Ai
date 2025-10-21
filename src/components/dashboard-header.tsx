@@ -17,6 +17,7 @@ import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 
 export function DashboardHeader({
@@ -29,10 +30,13 @@ export function DashboardHeader({
   const isMobile = useIsMobile();
   const { user } = useUser();
   const auth = useAuth();
+  const router = useRouter();
 
   const handleSignOut = () => {
     if (auth) {
-      signOut(auth);
+      signOut(auth).then(() => {
+        router.push('/');
+      });
     }
   };
 
