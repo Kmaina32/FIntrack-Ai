@@ -102,7 +102,7 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
     
     const incomeStatement = {
         title: 'Income Statement',
-        description: 'A summary of financial performance.',
+        description: 'A summary of revenues, expenses, and profits.',
         data: [
             { category: 'Total Revenue', value: totalRevenue },
             { category: 'Total Expenses', value: totalExpenses },
@@ -112,20 +112,21 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
 
     const cashFlow = {
         title: 'Cash Flow Statement',
-        description: 'A summary of cash movements.',
+        description: 'A summary of cash moving in and out of your business.',
         data: [
-            { category: 'Cash from Operations', value: netIncome },
+            { category: 'Cash from Operating Activities', value: netIncome },
+            // Add other cash flow categories here when data is available
             { category: 'Net Change in Cash', value: netIncome },
         ]
     };
 
      const balanceSheet = {
         title: 'Balance Sheet',
-        description: 'A snapshot of your financial position.',
+        description: 'A snapshot of your financial position at a single point in time.',
         data: [
             { category: 'Assets (Cash)', value: transactions.reduce((acc, t) => acc + t.amount, 0) },
-            { category: 'Liabilities', value: 0 },
-            { category: 'Equity', value: transactions.reduce((acc, t) => acc + t.amount, 0) },
+            { category: 'Liabilities', value: 0 }, // Placeholder
+            { category: 'Equity', value: transactions.reduce((acc, t) => acc + t.amount, 0) }, // Placeholder
         ]
     };
 

@@ -6,16 +6,24 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { exportToPDF, exportToExcel } from "@/lib/export";
-import { Report } from "@/lib/types";
 import { DashboardHeader } from "@/components/dashboard-header";
+
+type ReportData = {
+  title: string;
+  description: string;
+  data: { category: string; value: number }[];
+};
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('income-statement');
-  const [reportsData, setReportsData] = useState<Record<string, { title: string, description: string, data: {category: string, value: number}[] }>>({});
+  const [reportsData, setReportsData] = useState<Record<string, ReportData>>({});
 
   const handleExport = (format: 'pdf' | 'excel') => {
     const report = reportsData[activeTab];
-    if (!report) return;
+    if (!report || report.data.length === 0) {
+        alert("No data available to export for this report.");
+        return;
+    };
 
     const reportTitle = report.title;
     const headers = ["Category", "Amount"];
