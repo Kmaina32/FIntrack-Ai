@@ -1,3 +1,4 @@
+
 'use server';
 
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
@@ -7,7 +8,7 @@ import { getFirebaseAdmin } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
-import type { Transaction } from "./types";
+import type { Invoice, Transaction } from "./types";
 import { FieldValue } from "firebase-admin/firestore";
 
 
@@ -75,6 +76,35 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
         console.error("Error adding transaction:", error);
         throw new Error("Failed to add transaction.");
     }
+}
+
+export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId' | 'invoiceNumber'>, idToken: string) {
+  const userId = await getUserId(idToken);
+  const { db } = getFirebaseAdmin();
+
+  try {
+    const orgRef = db.collection('users').doc(userId);
+    const invoiceRef = orgRef.collection('invoices');
+
+    // Simple sequential invoice number for now. A more robust solution is needed for production.
+    const invoiceCountSnapshot = await invoiceRef.count().get();
+    const invoiceNumber = `INV-${(invoiceCountSnapshot.data().count + 1).toString().padStart(4, '0')}`;
+
+    const newInvoice = {
+      ...invoice,
+      userId,
+      invoiceNumber,
+      issueDate: new Date(invoice.issueDate),
+      dueDate: new Date(invoice.dueDate),
+    };
+
+    const docRef = await invoiceRef.add(newInvoice);
+
+    return { success: true, id: docRef.id };
+  } catch (error) {
+    console.error("Error creating invoice:", error);
+    throw new Error("Failed to create invoice.");
+  }
 }
 
 

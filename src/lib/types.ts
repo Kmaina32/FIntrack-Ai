@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export type Transaction = {
@@ -94,14 +95,14 @@ export type InvoiceLineItem = {
     description: string;
     quantity: number;
     unitPrice: number;
-    total: number;
+    total?: number; // Made optional as it can be calculated
 };
 
 export type Invoice = {
     id: string;
     userId: string;
     customerId: string;
-    customerName?: string; // Denormalized for easy display
+    customerName: string; // Denormalized for easy display
     invoiceNumber: string;
     issueDate: Timestamp | Date;
     dueDate: Timestamp | Date;
