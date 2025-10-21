@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -148,7 +149,6 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         data: [
             { category: 'Total Revenue', value: totalRevenue },
             { category: 'Total Expenses', value: totalExpenses },
-            { category: 'Net Income', value: netIncome },
         ]
     };
 
@@ -157,7 +157,6 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         description: 'A summary of cash moving in and out of your business.',
         data: [
             { category: 'Cash from Operating Activities', value: netIncome },
-            { category: 'Net Change in Cash', value: netIncome },
         ]
     };
 
@@ -167,7 +166,6 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         data: [
             { category: 'Assets (Cash)', value: transactions.reduce((acc, t) => acc + t.amount, 0) },
             { category: 'Liabilities', value: 0 }, 
-            { category: 'Equity', value: transactions.reduce((acc, t) => acc + t.amount, 0) }, 
         ]
     };
 
@@ -206,6 +204,10 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
   const isLoading = transactionsLoading || dailySalesLoading;
   const reportSkeletons = <Skeleton className="h-[500px] w-full" />;
 
+  const incomeStatementTotal = reportsData['income-statement'].data.reduce((acc, item) => acc + item.value, 0);
+  const balanceSheetTotal = reportsData['balance-sheet'].data.reduce((acc, item) => item.category === 'Liabilities' ? acc - item.value : acc + item.value, 0);
+
+
   return (
     <Tabs defaultValue="income-statement" className="space-y-4" onValueChange={onTabChange}>
       <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full h-auto">
@@ -216,10 +218,72 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         <TabsTrigger value="x-report">X Report</TabsTrigger>
       </TabsList>
       <TabsContent value="income-statement">
-        {isLoading ? reportSkeletons : <ReportTable {...reportsData['income-statement']} totalLabel="Net Income" />}
+        {isLoading ? reportSkeletons : (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">{reportsData['income-statement'].title}</CardTitle>
+                    <CardDescription>{reportsData['income-statement'].description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {reportsData['income-statement'].data.map((item) => (
+                            <TableRow key={item.category}>
+                                <TableCell className="font-medium">{item.category}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.value)}</TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell className="font-bold">Net Income</TableCell>
+                                <TableCell className="text-right font-bold">{formatCurrency(incomeStatementTotal)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </CardContent>
+            </Card>
+        )}
       </TabsContent>
       <TabsContent value="balance-sheet">
-         {isLoading ? reportSkeletons : <ReportTable {...reportsData['balance-sheet']} totalLabel="Total Equity"/>}
+         {isLoading ? reportSkeletons : (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">{reportsData['balance-sheet'].title}</CardTitle>
+                    <CardDescription>{reportsData['balance-sheet'].description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {reportsData['balance-sheet'].data.map((item) => (
+                            <TableRow key={item.category}>
+                                <TableCell className="font-medium">{item.category}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.value)}</TableCell>
+                            </TableRow>
+                            ))}
+                        </TableBody>
+                        <TableFooter>
+                            <TableRow>
+                                <TableCell className="font-bold">Total Equity</TableCell>
+                                <TableCell className="text-right font-bold">{formatCurrency(balanceSheetTotal)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
+                </CardContent>
+            </Card>
+         )}
       </TabsContent>
       <TabsContent value="cash-flow">
          {isLoading ? reportSkeletons : <ReportTable {...reportsData['cash-flow']} totalLabel="Net Change in Cash"/>}
