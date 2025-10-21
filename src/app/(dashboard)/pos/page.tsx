@@ -18,6 +18,7 @@ import { handleProcessSale } from '@/lib/actions';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { ProductSearch } from '@/components/pos/product-search';
 import { useBarcodeScanner } from '@/hooks/use-barcode-scanner';
+import { ReportsDropdown } from '@/components/pos/reports-dropdown';
 
 const TAX_RATE = 0.07; // 7% tax
 
@@ -185,7 +186,9 @@ export default function POSPage() {
   return (
     <>
       <div className="flex-1 flex flex-col h-full p-4 md:p-8 pt-6">
-        <DashboardHeader title="Point of Sale" />
+        <DashboardHeader title="Point of Sale">
+          <ReportsDropdown />
+        </DashboardHeader>
         <div className="grid md:grid-cols-3 gap-8 flex-1 mt-4">
           {/* Cart Section */}
           <div className="md:col-span-2 flex flex-col">
@@ -268,3 +271,5 @@ export default function POSPage() {
     </>
   );
 }
+
+    

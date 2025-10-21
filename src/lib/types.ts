@@ -22,12 +22,15 @@ export type SummaryCardData = {
 };
 
 export type Report = {
-  id:string;
-  title: string;
+  id: string;
+  userId: string;
+  generatedAt: Timestamp | Date | string;
+  type: 'End of Day';
   data: {
-    category: string;
-    value: number;
-  }[];
+    totalSales: number;
+    totalTax: number;
+    totalTransactions: number;
+  };
 };
 
 export type User = {
@@ -166,3 +169,5 @@ export type ChatMessage = {
     content: string;
     createdAt: Timestamp | Date | string;
 };
+
+    

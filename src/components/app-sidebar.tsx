@@ -28,6 +28,7 @@ import {
   Landmark,
   ChevronDown,
   GitCommitHorizontal,
+  History,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
@@ -43,11 +44,6 @@ const menuGroups = [
         href: '/dashboard',
         label: 'Dashboard',
         icon: LayoutDashboard,
-      },
-      {
-        href: '/reports',
-        label: 'Reports',
-        icon: BarChart3,
       },
     ]
   },
@@ -68,6 +64,11 @@ const menuGroups = [
         href: '/customers',
         label: 'Customers',
         icon: Users,
+      },
+       {
+        href: '/reports',
+        label: 'Report History',
+        icon: History,
       },
     ]
   },
@@ -152,10 +153,10 @@ export function AppSidebar({ user }: { user: User | null }) {
         <SidebarMenu>
           {menuGroups.map((group) => (
             <SidebarGroup key={group.label} asChild>
-                <>
+                <CollapsibleTrigger className="group/collapsible w-full">
                 <SidebarGroupLabel>
                     {group.label}
-                    <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                    <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]:/collapsible-rotate-180" />
                 </SidebarGroupLabel>
                 <CollapsibleContent asChild>
                     <div className="flex flex-col gap-1 py-1 pl-4">
@@ -177,7 +178,7 @@ export function AppSidebar({ user }: { user: User | null }) {
                     ))}
                     </div>
                 </CollapsibleContent>
-                </>
+                </CollapsibleTrigger>
             </SidebarGroup>
           ))}
            {isAdmin && (
@@ -218,3 +219,5 @@ export function AppSidebar({ user }: { user: User | null }) {
     </>
   );
 }
+
+    

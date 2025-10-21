@@ -502,6 +502,27 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "role", "content", "createdAt"]
+    },
+    "Report": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Report",
+      "description": "Represents a generated report.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["End of Day"] },
+        "data": {
+          "type": "object",
+          "properties": {
+             "totalSales": { "type": "number" },
+             "totalTax": { "type": "number" },
+             "totalTransactions": { "type": "number" }
+          }
+        }
+      },
+      "required": ["id", "userId", "generatedAt", "type", "data"]
     }
   },
   "auth": {
@@ -768,8 +789,24 @@
             { "name": "payrollRunId", "description": "The unique ID for the payroll run." }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/reports/{reportId}",
+        "definition": {
+          "entityName": "Report",
+          "schema": {
+            "$ref": "#/entities/Report"
+          },
+          "description": "Stores generated reports for historical purposes.",
+          "params": [
+            { "name": "userId", "description": "The team owner's user ID." },
+            { "name": "reportId", "description": "The unique ID for the report." }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable data model for the FinTrack AI application, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). It leverages structural segregation by using dedicated collections for each entity type, and consistent access modeling via path-based ownership for user-related data. \n\nAuthorization Independence is achieved by associating each BankAccount, Transaction, Account, Customer, and Vendor with the userId via hierarchical paths. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability.\n\nThe structure supports the required QAPs by ensuring that list operations can be secured effectively. Since all documents within a collection share the same security requirements (e.g., only the user can access their own data), rules can be written to allow listing only if `request.auth.uid == userId` without needing to filter based on document content."
   }
 }
+
+    

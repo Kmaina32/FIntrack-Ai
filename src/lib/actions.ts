@@ -7,7 +7,7 @@ import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financia
 import { auth, db } from "./firebase-admin";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
-import type { ChatMessage, Employee, Invoice, Product, Sale, Transaction } from "./types";
+import type { ChatMessage, Employee, Invoice, Product, Report, Sale, Transaction } from "./types";
 import { FieldValue, Timestamp, WriteBatch } from "firebase-admin/firestore";
 
 
@@ -245,3 +245,22 @@ export async function handleRunPayroll() {
         throw new Error(error.message || "Failed to run payroll.");
     }
 }
+
+
+export async function handleCreateReport(report: Omit<Report, 'id' | 'userId' | 'generatedAt'>, idToken: string) {
+    const userId = await getUserId(idToken);
+    try {
+        const newReport = {
+            ...report,
+            userId,
+            generatedAt: FieldValue.serverTimestamp(),
+        };
+        const reportRef = await db.collection('users').doc(userId).collection('reports').add(newReport);
+        return { success: true, id: reportRef.id };
+    } catch (error) {
+        console.error("Error creating report:", error);
+        throw new Error("Failed to create report.");
+    }
+}
+
+    
