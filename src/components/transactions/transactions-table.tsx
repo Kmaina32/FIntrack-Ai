@@ -18,14 +18,14 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { Transaction } from '@/lib/types';
-import { transactionCategories } from '@/lib/mock-data';
+import type { Transaction, Category } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleAiCategorize, handleUpdateTransactionCategory } from '@/lib/actions';
-import { useAuth } from '@/firebase';
+import { useAuth, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 const PAGE_SIZE = 10;
 
@@ -35,6 +35,13 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   const [loadingCategoryId, setLoadingCategoryId] = React.useState<string | null>(null);
   const { toast } = useToast();
   const auth = useAuth();
+  const { firestore, user } = useFirebase();
+
+  const categoriesQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, `users/${user.uid}/categories`)) : null,
+    [firestore, user]
+  );
+  const { data: categories } = useCollection<Category>(categoriesQuery);
 
   React.useEffect(() => {
     setTransactions(initialTransactions);
@@ -155,9 +162,10 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="auto">Auto-categorize (AI)</SelectItem>
-                        {transactionCategories.map(cat => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        {categories?.map(cat => (
+                          <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                         ))}
+                         <SelectItem value="Uncategorized">Uncategorized</SelectItem>
                       </SelectContent>
                     </Select>
                   )}

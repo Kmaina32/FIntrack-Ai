@@ -22,17 +22,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PlusCircle } from 'lucide-react';
-import { transactionCategories } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
 import { handleAddTransaction } from '@/lib/actions';
-import { useAuth } from '@/firebase';
+import { useAuth, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import type { Category } from '@/lib/types';
+import { collection, query } from 'firebase/firestore';
 
 export function AddTransactionSheet() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   const auth = useAuth();
+  const { firestore, user } = useFirebase();
 
+  const categoriesQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, `users/${user.uid}/categories`)) : null,
+    [firestore, user]
+  );
+  const { data: categories } = useCollection<Category>(categoriesQuery);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -133,11 +140,12 @@ export function AddTransactionSheet() {
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {transactionCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  {categories?.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
                     </SelectItem>
                   ))}
+                   <SelectItem value="Uncategorized">Uncategorized</SelectItem>
                 </SelectContent>
               </Select>
             </div>
