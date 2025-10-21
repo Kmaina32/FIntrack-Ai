@@ -124,7 +124,7 @@ export default function LoginPage() {
     try {
       await signInAnonymously(auth);
       router.push('/dashboard');
-    } catch (error: any) => {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Authentication Failed',
@@ -143,7 +143,7 @@ export default function LoginPage() {
       const userCredential = await signInWithPopup(auth, provider);
       await handlePostSignUp(userCredential);
       router.push('/dashboard');
-    } catch (error: any) => {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
