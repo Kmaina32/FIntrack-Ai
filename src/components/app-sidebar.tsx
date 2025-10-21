@@ -24,6 +24,7 @@ import {
   ReceiptText,
   ShoppingCart,
   Boxes,
+  Contact,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
@@ -93,6 +94,11 @@ const menuGroups = [
             label: 'Projects',
             icon: Briefcase,
         },
+        {
+            href: '/payroll',
+            label: 'Payroll',
+            icon: Contact,
+        }
       ]
   },
   {

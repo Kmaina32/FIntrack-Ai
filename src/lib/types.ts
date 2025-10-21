@@ -56,7 +56,7 @@ export type Account = {
 
 export type Customer = {
   id: string;
-  userId: string;
+  userId:string;
   name: string;
   email: string;
   address?: string;
@@ -138,3 +138,23 @@ export type Sale = {
   total: number;
   date: Timestamp | Date | string;
 };
+
+export type Employee = {
+    id: string;
+    userId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    payRate: number;
+    payType: 'Hourly' | 'Salary';
+    status: 'Active' | 'Inactive';
+};
+
+export type PayrollRun = {
+    id: string;
+    userId: string;
+    runDate: Timestamp | Date | string;
+    totalAmount: number;
+    employeeCount: number;
+};
+
