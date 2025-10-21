@@ -125,8 +125,8 @@ export async function handleAiQuery(
   }
 }
 
-export async function handleAddProduct(product: Omit<Product, 'id'>, idToken: string) {
-  const userId = await getUserId(idToken);
+export async function handleAddProduct(product: Omit<Product, 'id'>) {
+  const userId = await getUserIdFromHeaders();
 
   try {
     const productRef = await db.collection('users').doc(userId).collection('products').add(product);

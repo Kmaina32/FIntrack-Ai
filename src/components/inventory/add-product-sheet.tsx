@@ -25,13 +25,13 @@ export function AddProductSheet() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
-  const auth = useAuth();
+  const { user } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    if (!auth?.currentUser) {
+    if (!user) {
        toast({
         variant: "destructive",
         title: "Authentication Error",
@@ -40,7 +40,6 @@ export function AddProductSheet() {
       return;
     }
     
-    const idToken = await auth.currentUser.getIdToken();
     const productPayload = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
@@ -48,11 +47,11 @@ export function AddProductSheet() {
       price: parseFloat(formData.get('price') as string),
       quantityInStock: parseInt(formData.get('quantityInStock') as string, 10),
       imageUrl: formData.get('imageUrl') as string || `https://picsum.photos/seed/${Math.random()}/400/400`,
-      userId: auth.currentUser.uid,
+      userId: user.uid,
     };
 
     try {
-      await handleAddProduct(productPayload, idToken);
+      await handleAddProduct(productPayload);
       
       toast({
         title: "Product Added",
