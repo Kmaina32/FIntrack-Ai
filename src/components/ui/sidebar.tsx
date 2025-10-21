@@ -431,12 +431,10 @@ SidebarGroup.displayName = "SidebarGroup"
 
 const SidebarGroupLabel = React.forwardRef<
   React.ElementRef<typeof CollapsibleTrigger>,
-  React.ComponentProps<typeof CollapsibleTrigger> & { asChild?: boolean }
->(({ className, asChild = false, ...props }, ref) => {
-  const Comp = asChild ? Slot : "button";
-
+  React.ComponentProps<typeof CollapsibleTrigger>
+>(({ className, ...props }, ref) => {
   return (
-    <Comp
+    <CollapsibleTrigger
       ref={ref}
       data-sidebar="group-label"
       className={cn(
