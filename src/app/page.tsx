@@ -2,36 +2,10 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart, Bot, FileText, TrendingUp, Users, Zap } from 'lucide-react';
+import { ArrowRight, BarChart, Bot, FileText, TrendingUp, Users } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import Autoplay from "embla-carousel-autoplay";
-
-
-const heroSlides = [
-  {
-    src: "https://picsum.photos/seed/hero1/1200/800",
-    alt: "Person working on a laptop with charts in the background.",
-    hint: "business finance",
-  },
-  {
-    src: "https://picsum.photos/seed/hero2/1200/800",
-    alt: "Modern office setting with people collaborating.",
-    hint: "team collaboration",
-  },
-  {
-    src: "https://picsum.photos/seed/hero3/1200/800",
-    alt: "Close-up of a mobile phone displaying a financial app.",
-    hint: "mobile finance",
-  },
-  {
-    src: "https://picsum.photos/seed/hero4/1200/800",
-    alt: "Abstract visualization of data and networks.",
-    hint: "data analytics",
-  },
-]
 
 function FeatureCard({
   icon,
@@ -90,7 +64,7 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="container grid lg:grid-cols-2 gap-12 items-center py-20 md:py-32 px-4 md:px-6">
-          <div className="flex flex-col items-start text-left">
+          <div className="flex flex-col items-start text-left px-4 md:px-6">
             <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
               The Future of Accounting is Here
             </h1>
@@ -111,30 +85,14 @@ export default function LandingPage() {
                 </div>
             </div>
           </div>
-           <div className="relative w-full h-[60vh] rounded-lg overflow-hidden shadow-2xl">
-               <Carousel 
-                opts={{ loop: true }}
-                plugins={[
-                    Autoplay({
-                        delay: 4000,
-                    }),
-                ]}
-                className="absolute inset-0 w-full h-full"
-               >
-                    <CarouselContent>
-                        {heroSlides.map((slide, index) => (
-                            <CarouselItem key={index}>
-                                <Image 
-                                    src={slide.src}
-                                    alt={slide.alt}
-                                    fill
-                                    className="object-cover"
-                                    data-ai-hint={slide.hint}
-                                />
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                </Carousel>
+           <div className="relative w-full h-[60vh] rounded-lg overflow-hidden shadow-2xl px-4 md:px-6">
+                <Image 
+                    src="https://www.accountsjunction.com/BlogImg/artificial-intelligence-in-accounting.jpg_1754046459.jpg"
+                    alt="AI in accounting"
+                    fill
+                    className="object-cover"
+                    data-ai-hint="ai accounting"
+                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
            </div>
         </section>
