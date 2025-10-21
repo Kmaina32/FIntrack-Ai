@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
 import type { Invoice, Product, Sale, Transaction } from "./types";
-import { FieldValue, writeBatch } from "firebase-admin/firestore";
+import { FieldValue, WriteBatch } from "firebase-admin/firestore";
 
 
 async function getUserId(idToken: string | null | undefined): Promise<string> {
@@ -27,7 +27,7 @@ async function getUserId(idToken: string | null | undefined): Promise<string> {
 }
 
 async function getUserIdFromHeaders(): Promise<string> {
-  const idToken = headers().get('Authorization')?.split('Bearer ')[1];
+  const idToken = (await headers()).get('Authorization')?.split('Bearer ')[1];
   return getUserId(idToken);
 }
 
@@ -67,7 +67,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
             ...transaction,
             userId,
             amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
-            date: transaction.date ? new Date(transaction.date) : FieldValue.serverTimestamp()
+            date: transaction.date ? new Date(transaction.date as any) : FieldValue.serverTimestamp()
         };
 
         const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(newTransaction);
@@ -96,8 +96,8 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
       userId,
       invoiceNumber,
       // Add guards for dates
-      issueDate: invoice.issueDate ? new Date(invoice.issueDate) : new Date(),
-      dueDate: invoice.dueDate ? new Date(invoice.dueDate) : new Date(),
+      issueDate: invoice.issueDate ? new Date(invoice.issueDate as any) : new Date(),
+      dueDate: invoice.dueDate ? new Date(invoice.dueDate as any) : new Date(),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
