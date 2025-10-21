@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -25,6 +26,7 @@ import { useFirebase } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import Link from 'next/link';
 
 
 const PAGE_SIZE = 10;
@@ -91,9 +93,13 @@ export function ProjectsTable({ initialProjects }: { initialProjects: Project[] 
     return (
         <div className="space-y-4">
             {paginatedProjects.map(project => (
-                <Card key={project.id}>
+                 <Card key={project.id}>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-base font-medium">{project.name}</CardTitle>
+                        <CardTitle className="text-base font-medium">
+                            <Link href={`/projects/${project.id}`} className="hover:underline">
+                                {project.name}
+                            </Link>
+                        </CardTitle>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -141,7 +147,11 @@ export function ProjectsTable({ initialProjects }: { initialProjects: Project[] 
           <TableBody>
             {paginatedProjects.map((project) => (
               <TableRow key={project.id}>
-                <TableCell className="font-medium">{project.name}</TableCell>
+                <TableCell className="font-medium">
+                   <Link href={`/projects/${project.id}`} className="hover:underline">
+                        {project.name}
+                    </Link>
+                </TableCell>
                 <TableCell>{project.description || 'N/A'}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusVariant(project.status)} className="capitalize truncate">
