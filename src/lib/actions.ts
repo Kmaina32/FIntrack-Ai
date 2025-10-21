@@ -94,9 +94,9 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
       ...invoice,
       userId,
       invoiceNumber,
-      // The dates are now strings, so we can convert them to Firestore Timestamps directly
-      issueDate: new Date(invoice.issueDate as string),
-      dueDate: new Date(invoice.dueDate as string),
+      // Convert date strings from the payload into Date objects for Firestore
+      issueDate: new Date(invoice.issueDate),
+      dueDate: new Date(invoice.dueDate),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
