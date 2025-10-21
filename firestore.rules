@@ -1,109 +1,146 @@
 /**
- * @fileoverview Firestore Security Rules for FinTrack AI.
+ * @fileoverview Firestore Security Rules for FinTrack AI application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for all data. Each user can only access
- * their own profile information, bank accounts, transactions, and categories.
+ * This ruleset enforces a strict user-ownership model, ensuring that users can only access and manipulate data directly associated with their account.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information, with `userId` matching the authenticated user's UID.
- * - /users/{userId}/bankAccounts/{bankAccountId}: Stores bank accounts belonging to a user.
- * - /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}: Stores transactions for a bank account.
- * - /users/{userId}/categories/{categoryId}: Stores categories created by a user.
+ * The data is organized hierarchically under `/users/{userId}`, with subcollections for `bankAccounts`, `categories`, and `transactions`. This structure facilitates path-based authorization.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
- * - Path-based ownership is strictly enforced. The `userId` parameter in the path must always
- *   match the authenticated user's UID.
- * - Data validation is relaxed to allow for rapid prototyping, except for critical fields related
- *   to user ownership and relational integrity (e.g., `userId` in nested documents).
+ * - User listing is disabled.
+ * - Data validation is minimal in this prototyping phase, focusing on ownership and relational integrity.
+ * - Helper functions are used to encapsulate and clarify security logic.
  *
  * Denormalization for Authorization:
- * The data model is structured such that no `get()` calls are required for authorization.
- * User ownership is determined directly from the document path (e.g., `/users/{userId}/...`).
+ * The Firestore structure already denormalizes user IDs into document paths, which avoids the need for `get()` calls in rules. For example, the path `/users/{userId}/bankAccounts/{bankAccountId}` inherently links the bank account to a specific user.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Enforces access control for user profiles. Only the authenticated user can read or write their own profile.
+     * @description Checks if the user is signed in.
+     * @param {string} userId The user ID to check against.
+     * @returns {boolean} True if the user is signed in, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the user is the owner of the document.
+     * @param {string} userId The user ID to check against.
+     * @returns {boolean} True if the user is the owner, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * @description Checks if the user is the owner of the existing document.
+     *              This function also verifies that the document exists.
+     * @param {string} userId The user ID to check against.
+     * @returns {boolean} True if the user is the owner and the document exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Rules for the /users/{userId} document.
      * @path /users/{userId}
+     * @allow (create) User with ID 'user123' can create their own user document.
+     *        request.auth.uid: 'user123', request.resource.data.id: 'user123'
+     * @allow (get) User with ID 'user123' can get their own user document.
+     *        request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a user document with ID 'user123'.
+     *        request.auth.uid: 'user456', request.resource.data.id: 'user123'
+     * @deny (update) User with ID 'user456' cannot update the user document of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (delete) User with ID 'user456' cannot delete the user document of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes; only the authenticated user can create, update, or delete their own user document.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      allow get: if isOwner(userId);
+      allow list: if false;
 
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false; // User listing is not allowed.
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for bank accounts. Only the owner of the bank account (based on the path) can read or write it.
+     * @description Rules for the /users/{userId}/bankAccounts/{bankAccountId} document.
      * @path /users/{userId}/bankAccounts/{bankAccountId}
+     * @allow (create) User with ID 'user123' can create a bank account under their user document.
+     *        request.auth.uid: 'user123'
+     * @allow (get) User with ID 'user123' can get their own bank account.
+     *        request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a bank account under the user document of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (update) User with ID 'user456' cannot update the bank account of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (delete) User with ID 'user456' cannot delete the bank account of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes; only the authenticated user can create, update, or delete bank accounts under their user document.
      */
     match /users/{userId}/bankAccounts/{bankAccountId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
 
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-      
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for transactions. Only the owner of the transaction (based on the path) can read or write it.
+     * @description Rules for the /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId} document.
      * @path /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}
+     * @allow (create) User with ID 'user123' can create a transaction under their bank account.
+     *        request.auth.uid: 'user123'
+     * @allow (get) User with ID 'user123' can get their own transaction.
+     *        request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a transaction under the bank account of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (update) User with ID 'user456' cannot update the transaction of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (delete) User with ID 'user456' cannot delete the transaction of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes; only the authenticated user can create, update, or delete transactions under their bank account.
      */
     match /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
 
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces access control for categories. Only the owner of the category (based on the path) can read or write it.
+     * @description Rules for the /users/{userId}/categories/{categoryId} document.
      * @path /users/{userId}/categories/{categoryId}
+     * @allow (create) User with ID 'user123' can create a category under their user document.
+     *        request.auth.uid: 'user123'
+     * @allow (get) User with ID 'user123' can get their own category.
+     *        request.auth.uid: 'user123'
+     * @deny (create) User with ID 'user456' cannot create a category under the user document of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (update) User with ID 'user456' cannot update the category of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @deny (delete) User with ID 'user456' cannot delete the category of 'user123'.
+     *        request.auth.uid: 'user456'
+     * @principle Enforces document ownership for writes; only the authenticated user can create, update, or delete categories under their user document.
      */
     match /users/{userId}/categories/{categoryId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
 
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
   }
 }
