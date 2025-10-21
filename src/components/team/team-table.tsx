@@ -23,6 +23,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 
 const PAGE_SIZE = 10;
@@ -32,6 +34,7 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
   const [currentPage, setCurrentPage] = React.useState(1);
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     setMembers(initialMembers);
@@ -68,6 +71,53 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
       default:
         return 'outline';
     }
+  }
+
+  const renderPagination = () => (
+    <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </div>
+        <div className="space-x-2">
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
+        </div>
+      </div>
+  );
+
+  if (isMobile) {
+    return (
+        <div className="space-y-4">
+            {paginatedMembers.map(member => (
+                <Card key={member.id}>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-base font-medium truncate">{member.email}</CardTitle>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0" disabled>
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit Role</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(member.id)}>Remove Member</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                        <Badge variant={getRoleVariant(member.role)} className="capitalize truncate">
+                            {member.role}
+                        </Badge>
+                    </CardContent>
+                </Card>
+            ))}
+            {renderPagination()}
+        </div>
+    )
   }
 
 
@@ -111,17 +161,7 @@ export function TeamTable({ initialMembers }: { initialMembers: UserRole[] }) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="space-x-2">
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
-        </div>
-      </div>
+      {renderPagination()}
     </>
   );
 }

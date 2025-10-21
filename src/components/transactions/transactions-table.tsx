@@ -26,6 +26,8 @@ import { useToast } from '@/hooks/use-toast';
 import { handleAiCategorize, handleUpdateTransactionCategory } from '@/lib/actions';
 import { useAuth, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 const PAGE_SIZE = 10;
 
@@ -36,6 +38,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   const { toast } = useToast();
   const auth = useAuth();
   const { firestore, user } = useFirebase();
+  const isMobile = useIsMobile();
 
   const accountsQuery = useMemoFirebase(() => 
     user ? query(collection(firestore, `users/${user.uid}/accounts`)) : null,
@@ -104,8 +107,6 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
        }
        const idToken = await auth.currentUser.getIdToken();
       await handleUpdateTransactionCategory(transactionId, account, idToken);
-      // The local state will be updated via the real-time listener,
-      // so we don't need to call setTransactions here anymore.
     } catch (error) {
       console.error("Failed to update transaction account:", error);
       toast({
@@ -137,6 +138,70 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
       return format(date.toDate(), 'dd MMM, yyyy');
     }
     return format(new Date(date), 'dd MMM, yyyy');
+  }
+
+  const renderPagination = () => (
+     <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </div>
+        <div className="space-x-2">
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
+        </div>
+      </div>
+  );
+
+  if (isMobile) {
+    return (
+        <div className="space-y-4">
+            {paginatedTransactions.map(transaction => (
+                <Card key={transaction.id}>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-medium flex justify-between items-center">
+                            <span>{transaction.description}</span>
+                            <span className={`font-medium text-base ${transaction.amount > 0 ? 'text-green-600' : ''}`}>
+                                {formatCurrency(transaction.amount)}
+                            </span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                       <div className="text-muted-foreground">{formatDate(transaction.date)}</div>
+                       <div>
+                         {loadingCategoryId === transaction.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Select onValueChange={(value) => handleCategoryChange(transaction.id, value)} value={transaction.account}>
+                            <SelectTrigger className="h-8 text-xs w-full">
+                                <SelectValue asChild>
+                                <Badge variant={getCategoryVariant(transaction.account)} className="capitalize truncate">
+                                    {transaction.account}
+                                </Badge>
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="auto">Auto-categorize (AI)</SelectItem>
+                                {accounts?.map(acc => (
+                                <SelectItem key={acc.id} value={acc.name}>{acc.name}</SelectItem>
+                                ))}
+                                <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                            </SelectContent>
+                            </Select>
+                        )}
+                       </div>
+                        <div>
+                           {transaction.projectId ? (
+                                <Badge variant="secondary" className="truncate">{projectMap[transaction.projectId] || 'N/A'}</Badge>
+                            ): <span className="text-muted-foreground text-xs">No project</span>}
+                       </div>
+                    </CardContent>
+                </Card>
+            ))}
+            {renderPagination()}
+        </div>
+    )
   }
 
   return (
@@ -192,17 +257,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
-        </div>
-        <div className="space-x-2">
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
-        </div>
-      </div>
+      {renderPagination()}
     </>
   );
 }

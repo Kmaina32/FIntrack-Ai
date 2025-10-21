@@ -36,7 +36,7 @@ export function AddAccountSheet() {
   const auth = useAuth();
   const { firestore, user } = useFirebase();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add an account.' });
@@ -90,24 +90,24 @@ export function AddAccountSheet() {
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="md:text-right">
                 Name
               </Label>
-              <Input name="name" id="name" placeholder="e.g. Office Supplies" className="col-span-3" required/>
+              <Input name="name" id="name" placeholder="e.g. Office Supplies" className="md:col-span-3" required/>
             </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
+             <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="md:text-right">
                 Description
               </Label>
-              <Input name="description" id="description" placeholder="For office related expenses" className="col-span-3" />
+              <Input name="description" id="description" placeholder="For office related expenses" className="md:col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="type" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="md:text-right">
                 Type
               </Label>
                <Select name="type" required>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="md:col-span-3">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>

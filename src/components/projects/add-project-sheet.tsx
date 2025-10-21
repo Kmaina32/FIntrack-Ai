@@ -90,24 +90,24 @@ export function AddProjectSheet() {
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="md:text-right">
                 Name
               </Label>
-              <Input name="name" id="name" placeholder="e.g. Website Redesign" className="col-span-3" required/>
+              <Input name="name" id="name" placeholder="e.g. Website Redesign" className="md:col-span-3" required/>
             </div>
-             <div className="grid grid-cols-4 items-start gap-4">
-              <Label htmlFor="description" className="text-right pt-2">
+             <div className="grid md:grid-cols-4 items-start gap-4">
+              <Label htmlFor="description" className="md:text-right pt-2">
                 Description
               </Label>
-              <Textarea name="description" id="description" placeholder="A short description of the project." className="col-span-3" />
+              <Textarea name="description" id="description" placeholder="A short description of the project." className="md:col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="md:text-right">
                 Status
               </Label>
                <Select name="status" required defaultValue="Not Started">
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="md:col-span-3">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>

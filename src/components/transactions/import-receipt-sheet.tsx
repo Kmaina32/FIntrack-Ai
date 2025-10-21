@@ -194,8 +194,8 @@ export function ImportReceiptSheet() {
 
             {analyzedData && (
                 <>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">
+                 <div className="grid md:grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="md:text-right">
                         Date
                     </Label>
                     <Popover>
@@ -203,7 +203,7 @@ export function ImportReceiptSheet() {
                         <Button
                             variant={"outline"}
                             className={cn(
-                            "col-span-3 justify-start text-left font-normal",
+                            "md:col-span-3 justify-start text-left font-normal",
                             !date && "text-muted-foreground"
                             )}
                         >
@@ -221,24 +221,24 @@ export function ImportReceiptSheet() {
                         </PopoverContent>
                     </Popover>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="description" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="description" className="md:text-right">
                             Description
                         </Label>
-                        <Input name="description" id="description" defaultValue={analyzedData.description} className="col-span-3" required/>
+                        <Input name="description" id="description" defaultValue={analyzedData.description} className="md:col-span-3" required/>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="amount" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="amount" className="md:text-right">
                             Amount
                         </Label>
-                        <Input name="amount" id="amount" type="number" step="0.01" defaultValue={analyzedData.totalAmount} className="col-span-3" required/>
+                        <Input name="amount" id="amount" type="number" step="0.01" defaultValue={analyzedData.totalAmount} className="md:col-span-3" required/>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="account" className="text-right">
+                     <div className="grid md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="account" className="md:text-right">
                             Account
                         </Label>
                         <Select name="account" required>
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger className="md:col-span-3">
                             <SelectValue placeholder="Select an account" />
                             </SelectTrigger>
                             <SelectContent>
@@ -251,12 +251,12 @@ export function ImportReceiptSheet() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="project" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="project" className="md:text-right">
                             Project
                         </Label>
                         <Select name="project">
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger className="md:col-span-3">
                             <SelectValue placeholder="Assign to a project (optional)" />
                             </SelectTrigger>
                             <SelectContent>

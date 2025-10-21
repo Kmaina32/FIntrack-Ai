@@ -81,29 +81,29 @@ export function AddVendorSheet() {
             </SheetDescription>
           </SheetHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="md:text-right">
                 Name
               </Label>
-              <Input name="name" id="name" placeholder="e.g. Acme Inc." className="col-span-3" required/>
+              <Input name="name" id="name" placeholder="e.g. Acme Inc." className="md:col-span-3" required/>
             </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
+             <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="md:text-right">
                 Email
               </Label>
-              <Input name="email" id="email" type="email" placeholder="contact@acme.com" className="col-span-3"/>
+              <Input name="email" id="email" type="email" placeholder="contact@acme.com" className="md:col-span-3"/>
             </div>
-             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
+             <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="md:text-right">
                 Phone
               </Label>
-              <Input name="phone" id="phone" placeholder="+1 (234) 567-890" className="col-span-3" />
+              <Input name="phone" id="phone" placeholder="+1 (234) 567-890" className="md:col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="address" className="text-right">
+            <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="address" className="md:text-right">
                 Address
               </Label>
-              <Input name="address" id="address" placeholder="123 Business Rd, Suite 456" className="col-span-3" />
+              <Input name="address" id="address" placeholder="123 Business Rd, Suite 456" className="md:col-span-3" />
             </div>
           </div>
           <SheetFooter>
