@@ -46,14 +46,21 @@ export function AddProjectSheet() {
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
     const status = formData.get('status') as Project['status'];
+    const budget = formData.get('budget') as string;
     
     try {
-      await addDoc(collection(firestore, `users/${user.uid}/projects`), {
+      const projectData: Omit<Project, 'id'> = {
         userId: user.uid,
         name,
         description,
         status,
-      });
+      };
+
+      if (budget) {
+        projectData.budget = parseFloat(budget);
+      }
+
+      await addDoc(collection(firestore, `users/${user.uid}/projects`), projectData);
       
       toast({
         title: "Project Added",
@@ -116,6 +123,12 @@ export function AddProjectSheet() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+             <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="budget" className="md:text-right">
+                Budget
+              </Label>
+              <Input name="budget" id="budget" type="number" step="0.01" placeholder="e.g. 5000.00" className="md:col-span-3" />
             </div>
           </div>
           <SheetFooter>

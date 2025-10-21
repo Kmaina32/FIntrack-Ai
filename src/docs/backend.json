@@ -274,6 +274,10 @@
             "type": "string",
             "description": "The current status of the project.",
             "enum": ["Not Started", "In Progress", "Completed", "On Hold"]
+        },
+        "budget": {
+            "type": "number",
+            "description": "The allocated budget for the project."
         }
       },
       "required": ["id", "userId", "name", "status"]

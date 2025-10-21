@@ -85,6 +85,7 @@ export type Project = {
     name: string;
     description?: string;
     status: 'Not Started' | 'In Progress' | 'Completed' | 'On Hold';
+    budget?: number;
 };
 
 export type UserRole = {

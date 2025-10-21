@@ -30,20 +30,22 @@ export default function ProjectDetailPage() {
   , [firestore, user, projectId]);
   const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
-  const profitability = useMemo(() => {
-    if (!transactions) return { revenue: 0, expenses: 0, profit: 0 };
+  const projectMetrics = useMemo(() => {
+    if (!transactions) return { revenue: 0, expenses: 0, profit: 0, remainingBudget: 0 };
     const revenue = transactions.filter(t => t.amount > 0).reduce((acc, t) => acc + t.amount, 0);
     const expenses = transactions.filter(t => t.amount < 0).reduce((acc, t) => acc + Math.abs(t.amount), 0);
     const profit = revenue - expenses;
-    return { revenue, expenses, profit };
-  }, [transactions]);
+    const remainingBudget = project?.budget ? project.budget - expenses : 0;
+    return { revenue, expenses, profit, remainingBudget };
+  }, [transactions, project]);
 
 
   if (projectLoading) {
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
             <Skeleton className="h-8 w-64" />
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Skeleton className="h-[126px]" />
                 <Skeleton className="h-[126px]" />
                 <Skeleton className="h-[126px]" />
                 <Skeleton className="h-[126px]" />
@@ -65,10 +67,11 @@ export default function ProjectDetailPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <DashboardHeader title={project.name} />
-       <div className="grid gap-4 md:grid-cols-3">
-        <SummaryCard title="Total Revenue" value={profitability.revenue} />
-        <SummaryCard title="Total Expenses" value={profitability.expenses} />
-        <SummaryCard title="Net Profit" value={profitability.profit} />
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard title="Total Revenue" value={projectMetrics.revenue} />
+        <SummaryCard title="Actual Costs" value={projectMetrics.expenses} />
+        <SummaryCard title="Net Profit" value={projectMetrics.profit} />
+         {project.budget && <SummaryCard title="Budget Remaining" value={projectMetrics.remainingBudget} /> }
       </div>
       <Card>
         <CardHeader>
