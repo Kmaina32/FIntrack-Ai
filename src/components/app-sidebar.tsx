@@ -20,6 +20,7 @@ import {
   BookUser,
   Users,
   Store,
+  Briefcase,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { useAuth, useUser } from '@/firebase';
@@ -51,6 +52,11 @@ const menuItems = [
     href: '/vendors',
     label: 'Vendors',
     icon: Store,
+  },
+  {
+    href: '/projects',
+    label: 'Projects',
+    icon: Briefcase
   },
   {
     href: '/reports',

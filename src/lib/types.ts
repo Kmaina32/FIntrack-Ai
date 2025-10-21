@@ -8,6 +8,7 @@ export type Transaction = {
   type: 'Income' | 'Expense';
   account: string; // Changed from category
   bankAccountId?: string;
+  projectId?: string;
 };
 
 export type SummaryCardData = {
@@ -72,5 +73,13 @@ export type ReceiptData = {
   transactionDate: string;
   description: string;
   totalAmount: number;
+};
+
+export type Project = {
+    id: string;
+    userId: string;
+    name: string;
+    description?: string;
+    status: 'Not Started' | 'In Progress' | 'Completed' | 'On Hold';
 };
     

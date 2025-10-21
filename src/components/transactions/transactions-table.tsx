@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { Transaction, Account } from '@/lib/types';
+import type { Transaction, Account, Project } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
@@ -42,6 +42,14 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
     [firestore, user]
   );
   const { data: accounts } = useCollection<Account>(accountsQuery);
+
+  const projectsQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, `users/${user.uid}/projects`)) : null,
+    [firestore, user]
+  );
+  const { data: projects } = useCollection<Project>(projectsQuery);
+  const projectMap = React.useMemo(() => projects?.reduce((map, proj) => ({ ...map, [proj.id]: proj.name }), {}) || {}, [projects]);
+
 
   React.useEffect(() => {
     setTransactions(initialTransactions);
@@ -140,6 +148,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
               <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Account</TableHead>
+              <TableHead>Project</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
@@ -169,6 +178,11 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
                       </SelectContent>
                     </Select>
                   )}
+                </TableCell>
+                <TableCell>
+                    {transaction.projectId ? (
+                        <Badge variant="secondary" className="truncate">{projectMap[transaction.projectId] || 'N/A'}</Badge>
+                    ): <span className="text-muted-foreground text-xs">None</span>}
                 </TableCell>
                 <TableCell className={`text-right font-medium ${transaction.amount > 0 ? 'text-green-600' : ''}`}>
                   {formatCurrency(transaction.amount)}

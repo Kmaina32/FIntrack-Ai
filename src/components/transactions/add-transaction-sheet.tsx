@@ -25,7 +25,7 @@ import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleAddTransaction } from '@/lib/actions';
 import { useAuth, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import type { Account } from '@/lib/types';
+import type { Account, Project } from '@/lib/types';
 import { collection, query } from 'firebase/firestore';
 
 export function AddTransactionSheet() {
@@ -41,6 +41,12 @@ export function AddTransactionSheet() {
   );
   const { data: accounts } = useCollection<Account>(accountsQuery);
 
+  const projectsQuery = useMemoFirebase(() =>
+    user ? query(collection(firestore, `users/${user.uid}/projects`)) : null,
+    [firestore, user]
+  );
+  const { data: projects } = useCollection<Project>(projectsQuery);
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
@@ -48,6 +54,7 @@ export function AddTransactionSheet() {
     const amount = parseFloat(formData.get('amount') as string);
     const type = formData.get('type') as 'Income' | 'Expense';
     const account = formData.get('account') as string;
+    const projectId = formData.get('project') as string;
     
     if (!auth?.currentUser) {
        toast({
@@ -67,6 +74,7 @@ export function AddTransactionSheet() {
         type,
         account,
         date: new Date(),
+        projectId: projectId !== "none" ? projectId : undefined,
       }, idToken);
       
       toast({
@@ -146,6 +154,24 @@ export function AddTransactionSheet() {
                     </SelectItem>
                   ))}
                    <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project" className="text-right">
+                Project
+              </Label>
+              <Select name="project">
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Assign to a project (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {projects?.map((proj) => (
+                    <SelectItem key={proj.id} value={proj.id}>
+                      {proj.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

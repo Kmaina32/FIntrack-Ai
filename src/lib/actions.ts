@@ -71,6 +71,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
         const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(newTransaction);
         revalidatePath('/transactions');
         revalidatePath('/dashboard');
+        revalidatePath('/projects');
         return { success: true, id: transactionRef.id };
     } catch (error) {
         console.error("Error adding transaction:", error);

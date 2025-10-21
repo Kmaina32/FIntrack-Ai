@@ -26,7 +26,7 @@ import { Upload, Loader2, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleAddTransaction, handleAnalyzeReceipt } from '@/lib/actions';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import type { Account, ReceiptData } from '@/lib/types';
+import type { Account, ReceiptData, Project } from '@/lib/types';
 import { collection, query } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -51,6 +51,12 @@ export function ImportReceiptSheet() {
     [firestore, user]
   );
   const { data: accounts } = useCollection<Account>(accountsQuery);
+
+  const projectsQuery = useMemoFirebase(() =>
+    user ? query(collection(firestore, `users/${user.uid}/projects`)) : null,
+    [firestore, user]
+  );
+  const { data: projects } = useCollection<Project>(projectsQuery);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -98,6 +104,7 @@ export function ImportReceiptSheet() {
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
     const account = formData.get('account') as string;
+    const projectId = formData.get('project') as string;
     
     const idToken = await user.getIdToken();
 
@@ -108,6 +115,7 @@ export function ImportReceiptSheet() {
         type: 'Expense', // Receipts are always expenses
         account,
         date: date || new Date(),
+        projectId: projectId !== "none" ? projectId : undefined,
       }, idToken);
       
       toast({
@@ -240,6 +248,24 @@ export function ImportReceiptSheet() {
                                 </SelectItem>
                             ))}
                             <SelectItem value="Uncategorized">Uncategorized</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="project" className="text-right">
+                            Project
+                        </Label>
+                        <Select name="project">
+                            <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Assign to a project (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            {projects?.map((proj) => (
+                                <SelectItem key={proj.id} value={proj.id}>
+                                {proj.name}
+                                </SelectItem>
+                            ))}
                             </SelectContent>
                         </Select>
                     </div>
