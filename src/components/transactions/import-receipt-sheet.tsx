@@ -25,7 +25,8 @@ import {
 } from '@/components/ui/select';
 import { Upload, Loader2, CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { handleAddTransaction, handleAnalyzeReceipt } from '@/lib/actions';
+import { handleAddTransaction } from '@/lib/actions';
+import { analyzeReceipt } from '@/ai/flows/ai-analyze-receipt';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import type { Account, ReceiptData, Project } from '@/lib/types';
 import { collection, query } from 'firebase/firestore';
@@ -78,10 +79,7 @@ export function ImportReceiptSheet() {
     }
     setIsAnalyzing(true);
     try {
-      const result = await handleAnalyzeReceipt({ receiptImage });
-      if ('error' in result) {
-        throw new Error(result.error);
-      }
+      const result = await analyzeReceipt({ receiptImage });
       setAnalyzedData(result);
       if (result.transactionDate) {
         setDate(new Date(result.transactionDate));

@@ -3,7 +3,6 @@
 
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
 import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financial-assistant";
-import { analyzeReceipt, AnalyzeReceiptInput } from "@/ai/flows/ai-analyze-receipt";
 import { getFirebaseAdmin } from "./firebase-admin";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
@@ -126,18 +125,6 @@ export async function handleAiQuery(
   } catch (error) {
     console.error("Error querying financial data:", error);
     return { answer: "Sorry, I encountered an error while processing your request." };
-  }
-}
-
-export async function handleAnalyzeReceipt(
-  input: AnalyzeReceiptInput
-) {
-  try {
-    const result = await analyzeReceipt(input);
-    return result;
-  } catch (error) {
-    console.error("Error analyzing receipt:", error);
-    return { error: "Failed to analyze receipt." };
   }
 }
 
