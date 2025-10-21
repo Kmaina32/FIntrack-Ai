@@ -70,7 +70,7 @@ const menuItems = [
 
 const adminMenuItems = [
   {
-    href: '/team',
+    href: '/admin',
     label: 'Team',
     icon: Users2,
   },
