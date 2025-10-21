@@ -19,6 +19,7 @@ import {
   Store,
   Briefcase,
   Users2,
+  ReceiptText,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 
@@ -28,6 +29,11 @@ const menuItems = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    href: '/invoices',
+    label: 'Invoices',
+    icon: ReceiptText,
   },
   {
     href: '/transactions',

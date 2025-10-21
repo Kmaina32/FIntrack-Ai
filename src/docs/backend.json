@@ -291,6 +291,77 @@
         }
       },
       "required": ["id", "email", "role"]
+    },
+    "Invoice": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Invoice",
+      "description": "Represents an invoice sent to a customer.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Invoice entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Invoice)"
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference to the Customer being invoiced."
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "description": "A unique sequential number for the invoice."
+        },
+        "issueDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date the invoice was issued."
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date the invoice payment is due."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the invoice.",
+          "enum": ["Draft", "Sent", "Paid", "Overdue", "Void"]
+        },
+        "lineItems": {
+            "type": "array",
+            "items": {
+                "$ref": "#/entities/InvoiceLineItem"
+            }
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount of the invoice."
+        }
+      },
+      "required": ["id", "userId", "customerId", "invoiceNumber", "issueDate", "dueDate", "status", "totalAmount"]
+    },
+    "InvoiceLineItem": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Invoice Line Item",
+        "description": "Represents a single line item on an invoice.",
+        "type": "object",
+        "properties": {
+            "description": {
+                "type": "string"
+            },
+            "quantity": {
+                "type": "number"
+            },
+            "unitPrice": {
+                "type": "number"
+            },
+            "total": {
+                "type": "number"
+            }
+        },
+        "required": ["description", "quantity", "unitPrice", "total"]
     }
   },
   "auth": {
@@ -314,6 +385,26 @@
             {
               "name": "userId",
               "description": "The unique identifier for the user.  This is the `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/invoices/{invoiceId}",
+        "definition": {
+          "entityName": "Invoice",
+          "schema": {
+            "$ref": "#/backend/entities/Invoice"
+          },
+          "description": "Stores invoice information for a specific user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "invoiceId",
+              "description": "The unique identifier for the invoice."
             }
           ]
         }

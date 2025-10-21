@@ -90,3 +90,22 @@ export type UserRole = {
     role: 'Owner' | 'Admin' | 'Accountant' | 'Viewer';
 };
     
+export type InvoiceLineItem = {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+};
+
+export type Invoice = {
+    id: string;
+    userId: string;
+    customerId: string;
+    customerName?: string; // Denormalized for easy display
+    invoiceNumber: string;
+    issueDate: Timestamp | Date;
+    dueDate: Timestamp | Date;
+    status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | 'Void';
+    lineItems: InvoiceLineItem[];
+    totalAmount: number;
+};
