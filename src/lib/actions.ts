@@ -5,11 +5,10 @@ import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai
 import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financial-assistant";
 import { analyzeReceipt, AnalyzeReceiptInput } from "@/ai/flows/ai-analyze-receipt";
 import { getFirebaseAdmin } from "./firebase-admin";
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
 import type { ChatMessage, Invoice, Product, Sale, Transaction } from "./types";
-import { FieldValue, WriteBatch } from "firebase-admin/firestore";
+import { FieldValue, Timestamp, WriteBatch } from "firebase-admin/firestore";
 
 
 async function getUserId(idToken: string | null | undefined): Promise<string> {
@@ -27,8 +26,17 @@ async function getUserId(idToken: string | null | undefined): Promise<string> {
 }
 
 async function getUserIdFromHeaders(): Promise<string> {
-  const idToken = headers().get('Authorization')?.split('Bearer ')[1];
+  const heads = await headers();
+  const idToken = heads.get('Authorization')?.split('Bearer ')[1];
   return getUserId(idToken);
+}
+
+// Helper to convert Firestore Timestamp or string to JS Date
+function toDate(dateValue: string | Date | Timestamp): Date {
+    if (dateValue instanceof Timestamp) {
+        return dateValue.toDate();
+    }
+    return new Date(dateValue);
 }
 
 export async function handleAiCategorize(
@@ -67,7 +75,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
             ...transaction,
             userId,
             amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
-            date: transaction.date ? new Date(transaction.date) : FieldValue.serverTimestamp()
+            date: transaction.date ? toDate(transaction.date) : FieldValue.serverTimestamp()
         };
 
         const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(newTransaction);
@@ -87,7 +95,6 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
     const orgRef = db.collection('users').doc(userId);
     const invoiceRef = orgRef.collection('invoices');
 
-    // Safer count method using .get() and .size
     const invoicesSnapshot = await invoiceRef.get();
     const invoiceNumber = `INV-${(invoicesSnapshot.size + 1).toString().padStart(4, '0')}`;
 
@@ -95,9 +102,8 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
       ...invoice,
       userId,
       invoiceNumber,
-      // Add guards for dates
-      issueDate: invoice.issueDate ? new Date(invoice.issueDate) : new Date(),
-      dueDate: invoice.dueDate ? new Date(invoice.dueDate) : new Date(),
+      issueDate: invoice.issueDate ? toDate(invoice.issueDate) : new Date(),
+      dueDate: invoice.dueDate ? toDate(invoice.dueDate) : new Date(),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
@@ -105,7 +111,6 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Error creating invoice:", error);
-    // Return a more structured error for the client
     return { error: "Failed to create invoice on the server." };
   }
 }
@@ -155,19 +160,17 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
   const batch: WriteBatch = db.batch();
 
   try {
-    // 1. Create a transaction for the sale income
     const transaction: Omit<Transaction, 'id' | 'bankAccountId'> = {
       description: `POS Sale - ${new Date().toISOString()}`,
       amount: sale.total,
       type: 'Income',
-      account: 'Sales Revenue', // Assuming a default account
+      account: 'Sales Revenue', 
       date: new Date(),
       userId,
     };
     const transactionRef = db.collection('users').doc(userId).collection('transactions').doc();
     batch.set(transactionRef, transaction);
 
-    // 2. Decrement stock for each item in the sale
     for (const item of sale.lineItems) {
       const productRef = db.collection('users').doc(userId).collection('products').doc(item.id);
       batch.update(productRef, {
@@ -175,7 +178,6 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
       });
     }
 
-    // 3. Save the sale details
     const saleRef = db.collection('users').doc(userId).collection('sales').doc();
     batch.set(saleRef, { 
       ...sale, 
