@@ -91,7 +91,7 @@ export default function LoginPage() {
         userData.email = user.email;
       }
 
-      await setDoc(userRef, userData);
+      await setDoc(userRef, userData, { merge: true });
     }
   };
 
@@ -278,5 +278,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    

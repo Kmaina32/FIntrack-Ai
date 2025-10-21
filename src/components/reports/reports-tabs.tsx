@@ -26,7 +26,7 @@ import { formatCurrency } from '@/lib/utils';
 import type { Transaction, Sale } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { startOfDay, endOfDay } from 'date-fns';
@@ -88,6 +88,7 @@ interface ReportsTabsProps {
 export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
   const { firestore, user } = useFirebase();
   const [sessionSales, setSessionSales] = useState<Sale[]>([]);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const transactionsQuery = useMemoFirebase(() =>
     user ? query(
@@ -114,13 +115,14 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
     user ? query(collection(firestore, `users/${user.uid}/sales`), orderBy('date', 'desc')) : null, [firestore, user]
   );
   
-  useCollection<Sale>(salesQuery, {
-      onData: (data) => {
-        if(data) {
-           setSessionSales(prev => [...prev, ...data.filter(s => !prev.find(ps => ps.id === s.id))]);
-        }
-      }
-  });
+  const { data: allSales } = useCollection<Sale>(salesQuery);
+
+  useEffect(() => {
+    if (initialLoad && allSales) {
+        setSessionSales(allSales);
+        setInitialLoad(false);
+    }
+  }, [allSales, initialLoad])
 
 
   const reportsData = useMemo(() => {
@@ -229,5 +231,3 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
     </Tabs>
   );
 }
-
-    
