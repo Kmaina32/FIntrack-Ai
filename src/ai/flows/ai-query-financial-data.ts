@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   {{#if financialData}}
   {{{financialData}}}
   {{else}}
-  The user has not provided financial data, so answer in general terms.
+  The user has not provided any financial data for you to analyze.
   {{/if}}
 
   Answer the following question:

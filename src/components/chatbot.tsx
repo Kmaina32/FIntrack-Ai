@@ -18,6 +18,7 @@ import { handleAiQuery } from '@/lib/actions';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
 import { collection, query, limit } from 'firebase/firestore';
 import type { Transaction } from '@/lib/types';
+import { format } from 'date-fns';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -52,8 +53,19 @@ export function Chatbot() {
 
     try {
       // Create a string of financial data to pass to the AI
+      // Important: Convert Timestamp objects to readable date strings
+      const formattedTransactions = transactions?.map(t => {
+        const date = t.date instanceof Date 
+            ? t.date 
+            : (t.date as any).toDate ? (t.date as any).toDate() : new Date();
+        return {
+          ...t,
+          date: format(date, 'PPP'),
+        };
+      });
+
       const financialDataString = `
-        Transactions: ${JSON.stringify(transactions, null, 2)}
+        Transactions: ${JSON.stringify(formattedTransactions, null, 2)}
       `;
 
       const result = await handleAiQuery({ query: input, financialData: financialDataString });
