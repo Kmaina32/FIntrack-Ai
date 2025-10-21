@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -25,8 +26,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
-import { getFirebaseAdmin } from '@/lib/firebase-admin';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getDocs, collection } from 'firebase/firestore';
 import { getSdks } from '@/firebase/index';
 import { getApp } from 'firebase/app';
 
@@ -71,24 +71,33 @@ export default function LoginPage() {
 
   const handlePostSignUp = async (userCredential: UserCredential) => {
     const user = userCredential.user;
+    if (!user || !firestore) return;
+
     const userRef = doc(firestore, 'users', user.uid);
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
-      // Check if this is the first user
-      const usersCollection = await firestore.collection('users').limit(1).get();
-      const role = usersCollection.empty ? 'Owner' : 'Viewer';
+      let role: 'Owner' | 'Admin' | 'Viewer' = 'Viewer';
+      
+      if (user.email === 'gmaina424@gmail.com') {
+        role = 'Admin';
+      } else {
+         const usersCollection = await getDocs(collection(firestore, 'users'));
+         if (usersCollection.empty) {
+            role = 'Owner';
+         }
+      }
 
       await setDoc(userRef, {
         email: user.email,
         role: role,
       });
 
-      if (role === 'Owner') {
+      if (role === 'Owner' || role === 'Admin') {
           const userRolesRef = doc(firestore, `users/${user.uid}/userRoles`, user.uid);
           await setDoc(userRolesRef, {
               email: user.email,
-              role: 'Owner'
+              role: role
           });
       }
     }
@@ -258,3 +267,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
