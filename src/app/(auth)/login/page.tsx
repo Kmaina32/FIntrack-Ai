@@ -77,11 +77,13 @@ export default function LoginPage() {
     const userDoc = await getDoc(userRef);
 
     if (!userDoc.exists()) {
-      let role: 'Owner' | 'Admin' | 'Viewer' = 'Viewer';
+      let role: 'Owner' | 'Admin' | 'Viewer' = 'Viewer'; // Default role
       
+      // Check if user is the designated admin
       if (user.email === 'gmaina424@gmail.com') {
         role = 'Admin';
       } else {
+         // Check if they are the first user ever
          const usersCollection = await getDocs(collection(firestore, 'users'));
          if (usersCollection.empty) {
             role = 'Owner';
@@ -89,16 +91,14 @@ export default function LoginPage() {
       }
 
       // Prepare user data, only including email if it exists.
-      const userData: { role: string; email?: string } = {
-        role: role,
-      };
+      const userData: { role: string; email?: string } = { role };
       if (user.email) {
         userData.email = user.email;
       }
 
       await setDoc(userRef, userData);
 
-      // Only create the userRole document if email and role exist
+      // Only create the userRole document if email and a special role exist
       if ((role === 'Owner' || role === 'Admin') && user.email) {
           const userRolesRef = doc(firestore, `users/${user.uid}/userRoles`, user.uid);
           await setDoc(userRolesRef, {
