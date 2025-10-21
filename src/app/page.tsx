@@ -88,7 +88,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center overflow-hidden">
+        <section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center p-4">
            <Carousel 
             opts={{ loop: true }}
             plugins={[
@@ -96,7 +96,7 @@ export default function LandingPage() {
                     delay: 4000,
                 }),
             ]}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full rounded-lg overflow-hidden"
            >
                 <CarouselContent>
                     {heroSlides.map((slide, index) => (
@@ -112,7 +112,7 @@ export default function LandingPage() {
                     ))}
                 </CarouselContent>
             </Carousel>
-           <div className="absolute inset-0 bg-black/50" />
+           <div className="absolute inset-0 bg-black/50 rounded-lg" />
           <div className="container relative z-10 text-white flex flex-col justify-center h-full">
             <div className="flex-grow flex flex-col items-center justify-center">
                 <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight drop-shadow-md">
