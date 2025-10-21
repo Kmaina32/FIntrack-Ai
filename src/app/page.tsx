@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart, Bot, FileText, TrendingUp, Users, User } from 'lucide-react';
+import { ArrowRight, BarChart, Bot, FileText, TrendingUp, Users, User, Mail, Phone, Linkedin, Twitter } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -150,8 +150,44 @@ export default function LandingPage() {
 
       </main>
 
-      <footer className="py-6 border-t">
-        <div className="container text-center text-sm text-muted-foreground">
+      <footer className="py-12 border-t bg-muted/50">
+        <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+                <Logo />
+                <p className="text-muted-foreground text-sm mt-2">
+                    Smart Accounting for Modern Businesses.
+                </p>
+            </div>
+            <div>
+                <h4 className="font-semibold mb-2 font-headline">Contact</h4>
+                <div className="space-y-1 text-sm">
+                    <a href="mailto:contact@fintrackai.com" className="flex items-center gap-2 justify-center md:justify-start hover:text-primary">
+                        <Mail className="h-4 w-4" />
+                        contact@fintrackai.com
+                    </a>
+                    <a href="tel:+1234567890" className="flex items-center gap-2 justify-center md:justify-start hover:text-primary">
+                        <Phone className="h-4 w-4" />
+                        +1 (234) 567-890
+                    </a>
+                </div>
+            </div>
+             <div>
+                <h4 className="font-semibold mb-2 font-headline">Follow Us</h4>
+                 <div className="flex justify-center md:justify-start gap-4">
+                    <Button variant="ghost" size="icon" asChild>
+                        <a href="#" aria-label="Twitter">
+                            <Twitter className="h-5 w-5" />
+                        </a>
+                    </Button>
+                     <Button variant="ghost" size="icon" asChild>
+                        <a href="#" aria-label="LinkedIn">
+                            <Linkedin className="h-5 w-5" />
+                        </a>
+                    </Button>
+                </div>
+            </div>
+        </div>
+        <div className="container mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} FinTrack AI. All rights reserved.
         </div>
       </footer>
