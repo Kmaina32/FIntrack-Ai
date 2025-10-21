@@ -6,9 +6,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number) {
+  if (typeof amount !== 'number') {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+    }).format(0);
+  }
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'KES', // Defaulting to Kenyan Shilling as per context
+    currency: 'USD', 
     minimumFractionDigits: 2,
   }).format(amount);
 }
