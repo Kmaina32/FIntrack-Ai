@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bot, Loader2, Send, User as UserIcon } from 'lucide-react';
+import { Bot, Loader2, Send, User as UserIcon, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -12,12 +12,12 @@ import {
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { handleAiQuery } from '@/lib/actions';
+import { handleAiQuery, handleAddChatMessage } from '@/lib/actions';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, limit } from 'firebase/firestore';
-import type { Transaction } from '@/lib/types';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import type { Transaction, ChatMessage } from '@/lib/types';
 import { format } from 'date-fns';
 
 interface Message {
@@ -25,57 +25,54 @@ interface Message {
   content: string;
 }
 
+function groupMessagesByDate(messages: ChatMessage[]): Record<string, ChatMessage[]> {
+    return messages.reduce((acc, message) => {
+        const date = format(new Date(message.createdAt as any), 'PPP');
+        if (!acc[date]) {
+            acc[date] = [];
+        }
+        acc[date].push(message);
+        return acc;
+    }, {} as Record<string, ChatMessage[]>);
+}
+
 export function Chatbot() {
-  const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [view, setView] = React.useState<'chat' | 'history'>('chat');
 
   const { firestore, user } = useFirebase();
 
-  const transactionsQuery = useMemoFirebase(() => 
+  const messagesQuery = useMemoFirebase(() => 
     user ? query(
-      collection(firestore, `users/${user.uid}/transactions`),
-      limit(20)
+      collection(firestore, `users/${user.uid}/chatMessages`),
+      orderBy('createdAt', 'asc'),
     ) : null,
     [firestore, user]
   );
   
-  const { data: transactions } = useCollection<Transaction>(transactionsQuery);
+  const { data: messages = [] } = useCollection<ChatMessage>(messagesQuery);
+  const groupedHistory = React.useMemo(() => groupMessagesByDate(messages || []), [messages]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !user) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const userMessageContent = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      // Create a string of financial data to pass to the AI
-      // Important: Convert Timestamp objects to readable date strings
-      const formattedTransactions = transactions?.map(t => {
-        const date = t.date instanceof Date 
-            ? t.date 
-            : (t.date as any).toDate ? (t.date as any).toDate() : new Date();
-        return {
-          ...t,
-          date: format(date, 'PPP'),
-        };
-      });
-
-      const financialDataString = `
-        Transactions: ${JSON.stringify(formattedTransactions, null, 2)}
-      `;
-
-      const result = await handleAiQuery({ query: input, financialData: financialDataString });
+      await handleAddChatMessage({ role: 'user', content: userMessageContent }, await user.getIdToken());
+      
+      const result = await handleAiQuery({ query: userMessageContent });
       
       const assistantMessage: Message = { role: 'assistant', content: result.answer };
-      setMessages((prev) => [...prev, assistantMessage]);
+      await handleAddChatMessage(assistantMessage, await user.getIdToken());
 
     } catch (error) {
       const errorMessage: Message = { role: 'assistant', content: "Sorry, I couldn't process your request right now." };
-      setMessages((prev) => [...prev, errorMessage]);
+      await handleAddChatMessage(errorMessage, await user.getIdToken());
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +86,7 @@ export function Chatbot() {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [messages]);
+  }, [messages, view]);
 
 
   return (
@@ -106,77 +103,109 @@ export function Chatbot() {
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader>
-          <SheetTitle className="font-headline flex items-center gap-2">
-            <Bot /> AI Assistant
+          <SheetTitle className="font-headline flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                <Bot /> {view === 'chat' ? 'AI Assistant' : 'Chat History'}
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setView(v => v === 'chat' ? 'history' : 'chat')}>
+                <History className="h-5 w-5" />
+            </Button>
           </SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
-          <div className="space-y-4 pr-4">
-             <div className="flex justify-start gap-3 text-sm">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback><Bot size={20}/></AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg px-3 py-2 bg-muted">
-                    <p>Welcome! How can I help you with your finances today?</p>
+          {view === 'chat' ? (
+            <div className="space-y-4 pr-4">
+              {messages?.length === 0 && (
+                 <div className="flex justify-start gap-3 text-sm">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback><Bot size={20}/></AvatarFallback>
+                    </Avatar>
+                    <div className="rounded-lg px-3 py-2 bg-muted">
+                        <p>Welcome! How can I help you with your finances today?</p>
+                    </div>
+                  </div>
+              )}
+              {messages?.map((message, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    'flex gap-3 text-sm',
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  )}
+                >
+                  {message.role === 'assistant' && (
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback><Bot size={20}/></AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={cn(
+                      'rounded-lg px-3 py-2',
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    )}
+                  >
+                    <p>{message.content}</p>
+                  </div>
+                   {message.role === 'user' && (
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback><UserIcon size={20}/></AvatarFallback>
+                    </Avatar>
+                  )}
                 </div>
-              </div>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={cn(
-                  'flex gap-3 text-sm',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
-              >
-                {message.role === 'assistant' && (
+              ))}
+               {isLoading && (
+                <div className="flex justify-start gap-3 text-sm">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback><Bot size={20}/></AvatarFallback>
                   </Avatar>
-                )}
-                <div
-                  className={cn(
-                    'rounded-lg px-3 py-2',
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  )}
-                >
-                  <p>{message.content}</p>
+                  <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
+                    <Loader2 className="h-4 w-4 animate-spin"/>
+                  </div>
                 </div>
-                 {message.role === 'user' && (
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback><UserIcon size={20}/></AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            ))}
-             {isLoading && (
-              <div className="flex justify-start gap-3 text-sm">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback><Bot size={20}/></AvatarFallback>
-                </Avatar>
-                <div className="rounded-lg px-3 py-2 bg-muted flex items-center">
-                  <Loader2 className="h-4 w-4 animate-spin"/>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6 pr-4">
+                {Object.entries(groupedHistory).map(([date, historyMessages]) => (
+                    <div key={date}>
+                        <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 bg-background/90 py-1">
+                            {date}
+                        </div>
+                        <div className="space-y-4">
+                            {historyMessages.map((message, index) => (
+                                <div key={index} className={cn('flex gap-3 text-sm', message.role === 'user' ? 'justify-end' : 'justify-start')}>
+                                {message.role === 'assistant' && <Avatar className="w-8 h-8"><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                <div className={cn('rounded-lg px-3 py-2', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                    <p>{message.content}</p>
+                                </div>
+                                {message.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback><UserIcon size={20}/></AvatarFallback></Avatar>}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+          )}
         </ScrollArea>
-        <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
-          <Input
-            id="message"
-            placeholder="Ask about your finances..."
-            className="flex-1"
-            autoComplete="off"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isLoading}
-          />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-            <Send className="h-4 w-4" />
-            <span className="sr-only">Send Message</span>
-          </Button>
-        </form>
+        {view === 'chat' && (
+             <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
+                <Input
+                    id="message"
+                    placeholder="Ask about your finances..."
+                    className="flex-1"
+                    autoComplete="off"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={isLoading}
+                />
+                <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                    <Send className="h-4 w-4" />
+                    <span className="sr-only">Send Message</span>
+                </Button>
+             </form>
+        )}
       </SheetContent>
     </Sheet>
   );

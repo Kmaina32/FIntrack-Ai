@@ -158,3 +158,10 @@ export type PayrollRun = {
     employeeCount: number;
 };
 
+export type ChatMessage = {
+    id: string;
+    userId: string;
+    role: 'user' | 'assistant';
+    content: string;
+    createdAt: Timestamp | Date | string;
+};

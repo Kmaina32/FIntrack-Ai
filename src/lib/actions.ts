@@ -2,13 +2,13 @@
 'use server';
 
 import { categorizeTransaction, CategorizeTransactionInput } from "@/ai/flows/ai-categorize-transactions";
-import { aiQueryFinancialData, AIQueryFinancialDataInput } from "@/ai/flows/ai-query-financial-data";
+import { financialAssistant, FinancialAssistantInput } from "@/ai/flows/financial-assistant";
 import { analyzeReceipt, AnalyzeReceiptInput } from "@/ai/flows/ai-analyze-receipt";
 import { getFirebaseAdmin } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
-import type { Invoice, Product, Sale, Transaction } from "./types";
+import type { ChatMessage, Invoice, Product, Sale, Transaction } from "./types";
 import { FieldValue, WriteBatch } from "firebase-admin/firestore";
 
 
@@ -27,7 +27,7 @@ async function getUserId(idToken: string | null | undefined): Promise<string> {
 }
 
 async function getUserIdFromHeaders(): Promise<string> {
-  const idToken = (await headers()).get('Authorization')?.split('Bearer ')[1];
+  const idToken = headers().get('Authorization')?.split('Bearer ')[1];
   return getUserId(idToken);
 }
 
@@ -67,7 +67,7 @@ export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>,
             ...transaction,
             userId,
             amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
-            date: transaction.date ? new Date(transaction.date as any) : FieldValue.serverTimestamp()
+            date: transaction.date ? new Date(transaction.date) : FieldValue.serverTimestamp()
         };
 
         const transactionRef = await db.collection('users').doc(userId).collection('transactions').add(newTransaction);
@@ -96,8 +96,8 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
       userId,
       invoiceNumber,
       // Add guards for dates
-      issueDate: invoice.issueDate ? new Date(invoice.issueDate as any) : new Date(),
-      dueDate: invoice.dueDate ? new Date(invoice.dueDate as any) : new Date(),
+      issueDate: invoice.issueDate ? new Date(invoice.issueDate) : new Date(),
+      dueDate: invoice.dueDate ? new Date(invoice.dueDate) : new Date(),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
@@ -112,10 +112,11 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
 
 
 export async function handleAiQuery(
-  input: AIQueryFinancialDataInput
+  input: FinancialAssistantInput
 ) {
   try {
-    const result = await aiQueryFinancialData(input);
+    const userId = await getUserIdFromHeaders();
+    const result = await financialAssistant({ ...input, userId });
     return result;
   } catch (error) {
     console.error("Error querying financial data:", error);
@@ -151,7 +152,7 @@ export async function handleAddProduct(product: Omit<Product, 'id'>, idToken: st
 export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idToken: string) {
   const userId = await getUserId(idToken);
   const { db } = getFirebaseAdmin();
-  const batch = db.batch();
+  const batch: WriteBatch = db.batch();
 
   try {
     // 1. Create a transaction for the sale income
@@ -189,4 +190,22 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
     console.error("Error processing sale:", error);
     throw new Error("Failed to process sale.");
   }
+}
+
+export async function handleAddChatMessage(message: Omit<ChatMessage, 'id' | 'userId' | 'createdAt'>, idToken: string) {
+    const userId = await getUserId(idToken);
+    const { db } = getFirebaseAdmin();
+
+    try {
+        const newMessage = {
+            ...message,
+            userId,
+            createdAt: FieldValue.serverTimestamp(),
+        };
+        const messageRef = await db.collection('users').doc(userId).collection('chatMessages').add(newMessage);
+        return { success: true, id: messageRef.id };
+    } catch (error) {
+        console.error("Error adding chat message:", error);
+        throw new Error("Failed to add chat message.");
+    }
 }

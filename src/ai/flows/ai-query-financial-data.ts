@@ -10,6 +10,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { format } from 'date-fns';
+import type { Transaction } from '@/lib/types';
 
 const AIQueryFinancialDataInputSchema = z.object({
   query: z.string().describe('The user query about their financial data.'),
@@ -36,7 +38,7 @@ const prompt = ai.definePrompt({
   {{#if financialData}}
   {{{financialData}}}
   {{else}}
-  The user has not provided any financial data for you to analyze.
+  The user has not provided any financial data for you to analyze. Ask the user what they need help with.
   {{/if}}
 
   Answer the following question:

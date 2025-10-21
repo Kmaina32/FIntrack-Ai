@@ -484,6 +484,20 @@
             "employeeCount": {"type": "number"}
         },
         "required": ["id", "userId", "runDate", "totalAmount", "employeeCount"]
+    },
+    "ChatMessage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ChatMessage",
+      "description": "Represents a single message in a chat conversation with the AI assistant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "role", "content", "createdAt"]
     }
   },
   "auth": {
@@ -509,6 +523,18 @@
               "description": "The unique identifier for the user.  This is the `request.auth.uid`."
             }
           ]
+        }
+      },
+      {
+        "path": "/users/{userId}/chatMessages/{messageId}",
+        "definition": {
+            "entityName": "ChatMessage",
+            "schema": { "$ref": "#/entities/ChatMessage" },
+            "description": "Stores chat messages for a specific user.",
+            "params": [
+                { "name": "userId", "description": "The user's unique ID." },
+                { "name": "messageId", "description": "The unique ID for the chat message." }
+            ]
         }
       },
       {
