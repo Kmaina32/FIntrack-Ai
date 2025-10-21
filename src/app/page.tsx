@@ -55,12 +55,12 @@ function FeatureCard({
 
 function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
     return (
-        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg text-white flex flex-col items-center text-center">
+        <div className="bg-background/80 backdrop-blur-sm p-4 rounded-lg text-foreground flex flex-col items-center text-center border">
             <div className="text-accent mb-1">
                 {icon}
             </div>
             <p className="text-xl md:text-4xl font-bold font-headline">{value}</p>
-            <p className="text-white/80 uppercase text-xs tracking-widest">{label}</p>
+            <p className="text-muted-foreground uppercase text-xs tracking-widest">{label}</p>
         </div>
     )
 }
@@ -89,55 +89,54 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative h-[85vh] md:h-screen flex items-center justify-center text-center p-4">
-           <Carousel 
-            opts={{ loop: true }}
-            plugins={[
-                Autoplay({
-                    delay: 4000,
-                }),
-            ]}
-            className="absolute inset-0 w-full h-full rounded-lg overflow-hidden"
-           >
-                <CarouselContent>
-                    {heroSlides.map((slide, index) => (
-                        <CarouselItem key={index}>
-                            <Image 
-                                src={slide.src}
-                                alt={slide.alt}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={slide.hint}
-                            />
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-            </Carousel>
-           <div className="absolute inset-0 bg-black/50 rounded-lg" />
-          <div className="container relative z-10 text-white flex flex-col justify-center h-full">
-            <div className="flex-grow flex flex-col items-center justify-center">
-                <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight drop-shadow-md">
-                The Future of Accounting is Here
-                </h1>
-                <p className="mt-4 md:text-xl text-lg max-w-2xl mx-auto drop-shadow-sm text-gray-200">
-                FinTrack AI provides smart, AI-powered tools to manage your
-                finances, from invoicing to real-time reporting.
-                </p>
-                <div className="mt-8 flex justify-center">
-                <Button size="lg" asChild>
-                    <Link href="/login">Get Started for Free</Link>
-                </Button>
-                </div>
+        <section className="container grid lg:grid-cols-2 gap-12 items-center py-20 md:py-32">
+          <div className="flex flex-col items-start text-left">
+            <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
+              The Future of Accounting is Here
+            </h1>
+            <p className="mt-4 md:text-xl text-lg max-w-2xl text-muted-foreground">
+              FinTrack AI provides smart, AI-powered tools to manage your
+              finances, from invoicing to real-time reporting.
+            </p>
+            <div className="mt-8 flex justify-center">
+              <Button size="lg" asChild>
+                <Link href="/login">Get Started for Free</Link>
+              </Button>
             </div>
-            {/* Stats Overlay */}
-            <div className="w-full pb-4 md:pb-12">
-                 <div className="grid grid-cols-3 gap-2 md:gap-8 max-w-4xl mx-auto">
-                    <StatCard icon={<Users className="h-6 w-6 md:h-10 md:w-10"/>} value="10k+" label="Users" />
-                    <StatCard icon={<FileText className="h-6 w-6 md:h-10 md:w-10"/>} value="500k+" label="Invoices" />
-                    <StatCard icon={<TrendingUp className="h-6 w-6 md:h-10 md:w-10"/>} value="1.2M+" label="Transactions" />
+             <div className="w-full pt-12">
+                 <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-4xl">
+                    <StatCard icon={<Users className="h-6 w-6 md:h-8 md:w-8"/>} value="10k+" label="Users" />
+                    <StatCard icon={<FileText className="h-6 w-6 md:h-8 md:w-8"/>} value="500k+" label="Invoices" />
+                    <StatCard icon={<TrendingUp className="h-6 w-6 md:h-8 md:w-8"/>} value="1.2M+" label="Transactions" />
                 </div>
             </div>
           </div>
+           <div className="relative w-full h-[60vh] rounded-lg overflow-hidden shadow-2xl">
+               <Carousel 
+                opts={{ loop: true }}
+                plugins={[
+                    Autoplay({
+                        delay: 4000,
+                    }),
+                ]}
+                className="absolute inset-0 w-full h-full"
+               >
+                    <CarouselContent>
+                        {heroSlides.map((slide, index) => (
+                            <CarouselItem key={index}>
+                                <Image 
+                                    src={slide.src}
+                                    alt={slide.alt}
+                                    fill
+                                    className="object-cover"
+                                    data-ai-hint={slide.hint}
+                                />
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                </Carousel>
+               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+           </div>
         </section>
 
 
