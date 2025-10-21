@@ -19,6 +19,7 @@ import {
   LogOut,
   BookUser,
   Users,
+  Store,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { useAuth, useUser } from '@/firebase';
@@ -45,6 +46,11 @@ const menuItems = [
     href: '/customers',
     label: 'Customers',
     icon: Users,
+  },
+  {
+    href: '/vendors',
+    label: 'Vendors',
+    icon: Store,
   },
   {
     href: '/reports',
@@ -79,7 +85,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href)}
                 tooltip={item.label}
               >
                 <Link href={item.href}>
@@ -99,9 +105,9 @@ export function AppSidebar() {
               {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'user'} data-ai-hint="person portrait" />}
               <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col text-sm">
-              <span className="font-semibold text-sidebar-accent-foreground">{user?.displayName || 'User'}</span>
-              <span className="text-muted-foreground">{user?.email}</span>
+            <div className="flex flex-col text-sm truncate">
+              <span className="font-semibold text-sidebar-accent-foreground truncate">{user?.displayName || 'User'}</span>
+              <span className="text-muted-foreground truncate">{user?.email}</span>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-8 w-8">

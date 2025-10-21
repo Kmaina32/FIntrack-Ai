@@ -18,7 +18,7 @@ export type SummaryCardData = {
 };
 
 export type Report = {
-  id: string;
+  id:string;
   title: string;
   data: {
     category: string;
@@ -54,6 +54,15 @@ export type Customer = {
   userId: string;
   name: string;
   email: string;
+  address?: string;
+  phone?: string;
+};
+
+export type Vendor = {
+  id: string;
+  userId: string;
+  name: string;
+  email?: string;
   address?: string;
   phone?: string;
 };
