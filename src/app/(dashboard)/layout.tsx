@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppSidebar } from '@/components/app-sidebar';
@@ -13,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';
+import { DashboardHeader } from '@/components/dashboard-header';
 
 export default function DashboardLayout({
   children,
