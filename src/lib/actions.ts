@@ -199,8 +199,8 @@ export async function handleAddChatMessage(message: Omit<ChatMessage, 'id' | 'us
     }
 }
 
-export async function handleRunPayroll(idToken: string) {
-    const userId = await getUserId(idToken);
+export async function handleRunPayroll() {
+    const userId = await getUserIdFromHeaders();
     const { db } = getFirebaseAdmin();
     const batch = db.batch();
 

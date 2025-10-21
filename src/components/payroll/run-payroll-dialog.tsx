@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Rocket } from 'lucide-react';
 import type { Employee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
 import { handleRunPayroll } from '@/lib/actions';
 import { formatCurrency } from '@/lib/utils';
 
@@ -28,7 +27,6 @@ export function RunPayrollDialog({ activeEmployees }: RunPayrollDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const auth = useAuth();
   
   const totalPayroll = activeEmployees.reduce((acc, emp) => {
     if (emp.payType === 'Salary') {
@@ -38,14 +36,9 @@ export function RunPayrollDialog({ activeEmployees }: RunPayrollDialogProps) {
   }, 0);
 
   const handleConfirm = async () => {
-    if (!auth?.currentUser) {
-      toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
-      return;
-    }
     setIsProcessing(true);
     try {
-      const idToken = await auth.currentUser.getIdToken();
-      const result = await handleRunPayroll(idToken);
+      const result = await handleRunPayroll();
 
       if (result.success) {
         toast({
