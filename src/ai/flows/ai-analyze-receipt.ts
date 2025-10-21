@@ -24,9 +24,41 @@ export const AnalyzeReceiptOutputSchema = z.object({
   vendorName: z.string().describe("The name of the vendor or store from the receipt."),
   transactionDate: z
     .string()
-do_not_use:
-- docs/backend.json
-- src/app/(dashboard)/team/page.tsx
-- src/components/team/add-member-sheet.tsx
-- src/components/team/team-table.tsx
-- src/lib/types.ts
+    .describe('The date of the transaction in YYYY-MM-DD format.'),
+  description: z
+    .string()
+    .describe('A short description of the items purchased.'),
+  totalAmount: z.number().describe('The total amount of the transaction.'),
+});
+export type AnalyzeReceiptOutput = z.infer<typeof AnalyzeReceiptOutputSchema>;
+
+export async function analyzeReceipt(
+  input: AnalyzeReceiptInput
+): Promise<AnalyzeReceiptOutput> {
+  return analyzeReceiptFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'analyzeReceiptPrompt',
+  input: {schema: AnalyzeReceiptInputSchema},
+  output: {schema: AnalyzeReceiptOutputSchema},
+  prompt: `You are an expert at analyzing receipt images and extracting structured data.
+
+  Analyze the following receipt image and extract the vendor's name, the date of the transaction, a brief description of what was purchased, and the total amount.
+
+  Receipt Image: {{media url=receiptImage}}
+  
+  Ensure the output is valid JSON.`,
+});
+
+const analyzeReceiptFlow = ai.defineFlow(
+  {
+    name: 'analyzeReceiptFlow',
+    inputSchema: AnalyzeReceiptInputSchema,
+    outputSchema: AnalyzeReceiptOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);
