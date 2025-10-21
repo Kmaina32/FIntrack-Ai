@@ -124,7 +124,7 @@ export default function LoginPage() {
     try {
       await signInAnonymously(auth);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: any) => {
       toast({
         variant: 'destructive',
         title: 'Authentication Failed',
@@ -143,7 +143,7 @@ export default function LoginPage() {
       const userCredential = await signInWithPopup(auth, provider);
       await handlePostSignUp(userCredential);
       router.push('/dashboard');
-    } catch (error: any) {
+    } catch (error: any) => {
       toast({
         variant: 'destructive',
         title: 'Google Sign-In Failed',
@@ -153,6 +153,11 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+  
+  const onTabChange = () => {
+    setEmail('');
+    setPassword('');
+  }
 
 
   return (
@@ -168,7 +173,7 @@ export default function LoginPage() {
                     Enter your credentials to access your dashboard
                 </p>
             </div>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="login" className="w-full" onValueChange={onTabChange}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
