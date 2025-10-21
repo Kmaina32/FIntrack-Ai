@@ -20,14 +20,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter
 } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/utils';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Sale } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useEffect, useMemo } from 'react';
+import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
+import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
+import { startOfDay, endOfDay } from 'date-fns';
 
 type ReportData = {
   title: string,
@@ -35,7 +37,9 @@ type ReportData = {
   data: {category: string, value: number}[]
 }
 
-function ReportTable({ data, title, description }: { data: {category: string, value: number}[], title: string, description: string }) {
+function ReportTable({ data, title, description, totalLabel = "Total" }: { data: {category: string, value: number}[], title: string, description: string, totalLabel?: string }) {
+  const total = data.reduce((acc, item) => acc + item.value, 0);
+  
   return (
     <Card>
       <CardHeader>
@@ -63,6 +67,12 @@ function ReportTable({ data, title, description }: { data: {category: string, va
                 </TableRow>
               ))}
             </TableBody>
+            <TableFooter>
+                <TableRow>
+                    <TableCell className="font-bold">{totalLabel}</TableCell>
+                    <TableCell className="text-right font-bold">{formatCurrency(total)}</TableCell>
+                </TableRow>
+            </TableFooter>
           </Table>
         </ScrollArea>
       </CardContent>
@@ -77,6 +87,7 @@ interface ReportsTabsProps {
 
 export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
   const { firestore, user } = useFirebase();
+  const [sessionSales, setSessionSales] = useState<Sale[]>([]);
 
   const transactionsQuery = useMemoFirebase(() =>
     user ? query(
@@ -84,8 +95,33 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
       orderBy('date', 'desc')
     ) : null
   , [firestore, user]);
+  const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
-  const { data: transactions, isLoading } = useCollection<Transaction>(transactionsQuery);
+  const today = new Date();
+  const startOfToday = startOfDay(today);
+  const endOfToday = endOfDay(today);
+
+  const dailySalesQuery = useMemoFirebase(() => 
+    user ? query(
+      collection(firestore, `users/${user.uid}/sales`),
+      where('date', '>=', startOfToday),
+      where('date', '<=', endOfToday)
+    ) : null
+  , [firestore, user]);
+  const { data: dailySales, isLoading: dailySalesLoading } = useCollection<Sale>(dailySalesQuery);
+  
+  const salesQuery = useMemoFirebase(() =>
+    user ? query(collection(firestore, `users/${user.uid}/sales`), orderBy('date', 'desc')) : null, [firestore, user]
+  );
+  
+  useCollection<Sale>(salesQuery, {
+      onData: (data) => {
+        if(data) {
+           setSessionSales(prev => [...prev, ...data.filter(s => !prev.find(ps => ps.id === s.id))]);
+        }
+      }
+  });
+
 
   const reportsData = useMemo(() => {
     if (!transactions) {
@@ -93,6 +129,8 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         'income-statement': { title: 'Income Statement', description: 'A summary of financial performance.', data: [] },
         'balance-sheet': { title: 'Balance Sheet', description: 'A snapshot of your financial position.', data: [] },
         'cash-flow': { title: 'Cash Flow', description: 'A summary of cash movements.', data: [] },
+        'z-report': { title: 'Z Report (Daily Sales)', description: 'Summary of all sales for today.', data: [] },
+        'x-report': { title: 'X Report (Session Sales)', description: 'Summary of sales since this session started.', data: [] },
       };
     }
 
@@ -115,7 +153,6 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         description: 'A summary of cash moving in and out of your business.',
         data: [
             { category: 'Cash from Operating Activities', value: netIncome },
-            // Add other cash flow categories here when data is available
             { category: 'Net Change in Cash', value: netIncome },
         ]
     };
@@ -125,41 +162,72 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         description: 'A snapshot of your financial position at a single point in time.',
         data: [
             { category: 'Assets (Cash)', value: transactions.reduce((acc, t) => acc + t.amount, 0) },
-            { category: 'Liabilities', value: 0 }, // Placeholder
-            { category: 'Equity', value: transactions.reduce((acc, t) => acc + t.amount, 0) }, // Placeholder
+            { category: 'Liabilities', value: 0 }, 
+            { category: 'Equity', value: transactions.reduce((acc, t) => acc + t.amount, 0) }, 
         ]
+    };
+
+    const zReport = {
+        title: 'Z Report (Daily Sales)',
+        description: `Summary of all sales for ${today.toLocaleDateString()}`,
+        data: dailySales ? [
+            { category: 'Total Sales', value: dailySales.reduce((sum, sale) => sum + sale.total, 0) },
+            { category: 'Total Tax', value: dailySales.reduce((sum, sale) => sum + sale.tax, 0) },
+        ] : []
+    };
+
+    const xReport = {
+        title: 'X Report (Session Sales)',
+        description: 'Summary of sales since this app session started.',
+        data: sessionSales ? [
+            { category: 'Total Sales', value: sessionSales.reduce((sum, sale) => sum + sale.total, 0) },
+            { category: 'Total Tax', value: sessionSales.reduce((sum, sale) => sum + sale.tax, 0) },
+        ] : []
     };
 
     return {
       'income-statement': incomeStatement,
       'balance-sheet': balanceSheet,
-      'cash-flow': cashFlow
+      'cash-flow': cashFlow,
+      'z-report': zReport,
+      'x-report': xReport,
     };
 
-  }, [transactions]);
+  }, [transactions, dailySales, sessionSales, today]);
   
   useEffect(() => {
     onDataLoad(reportsData);
   }, [reportsData, onDataLoad]);
 
+  const isLoading = transactionsLoading || dailySalesLoading;
   const reportSkeletons = <Skeleton className="h-[500px] w-full" />;
 
   return (
     <Tabs defaultValue="income-statement" className="space-y-4" onValueChange={onTabChange}>
-      <TabsList>
+      <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full md:w-auto">
         <TabsTrigger value="income-statement">Income Statement</TabsTrigger>
         <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
         <TabsTrigger value="cash-flow">Cash Flow</TabsTrigger>
+        <TabsTrigger value="z-report">Z Report</TabsTrigger>
+        <TabsTrigger value="x-report">X Report</TabsTrigger>
       </TabsList>
       <TabsContent value="income-statement">
-        {isLoading ? reportSkeletons : <ReportTable {...reportsData['income-statement']} />}
+        {isLoading ? reportSkeletons : <ReportTable {...reportsData['income-statement']} totalLabel="Net Income" />}
       </TabsContent>
       <TabsContent value="balance-sheet">
-         {isLoading ? reportSkeletons : <ReportTable {...reportsData['balance-sheet']} />}
+         {isLoading ? reportSkeletons : <ReportTable {...reportsData['balance-sheet']} totalLabel="Total Equity"/>}
       </TabsContent>
       <TabsContent value="cash-flow">
-         {isLoading ? reportSkeletons : <ReportTable {...reportsData['cash-flow']} />}
+         {isLoading ? reportSkeletons : <ReportTable {...reportsData['cash-flow']} totalLabel="Net Change in Cash"/>}
+      </TabsContent>
+       <TabsContent value="z-report">
+         {isLoading ? reportSkeletons : <ReportTable {...reportsData['z-report']} totalLabel="Total Collection"/>}
+      </TabsContent>
+       <TabsContent value="x-report">
+         {isLoading ? reportSkeletons : <ReportTable {...reportsData['x-report']} totalLabel="Total Collection"/>}
       </TabsContent>
     </Tabs>
   );
 }
+
+    

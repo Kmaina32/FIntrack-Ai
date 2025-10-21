@@ -154,7 +154,7 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
 
   try {
     // 1. Create a transaction for the sale income
-    const transaction: Omit<Transaction, 'id'> = {
+    const transaction: Omit<Transaction, 'id' | 'bankAccountId'> = {
       description: `POS Sale - ${new Date().toISOString()}`,
       amount: sale.total,
       type: 'Income',
@@ -172,9 +172,13 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
       });
     }
 
-    // 3. (Optional) Save the sale details
+    // 3. Save the sale details
     const saleRef = db.collection('users').doc(userId).collection('sales').doc();
-    batch.set(saleRef, { ...sale, userId });
+    batch.set(saleRef, { 
+      ...sale, 
+      userId,
+      date: new Date(),
+    });
     
     await batch.commit();
 
@@ -184,3 +188,5 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
     throw new Error("Failed to process sale.");
   }
 }
+
+    
