@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Boxes,
   Contact,
+  Landmark,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
@@ -109,6 +110,11 @@ const menuGroups = [
             label: 'Accounts',
             icon: BookUser,
         },
+        {
+          href: '/bank-accounts',
+          label: 'Bank Accounts',
+          icon: Landmark,
+        }
       ]
   }
 ];

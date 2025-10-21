@@ -26,6 +26,9 @@ export default function TransactionsPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <DashboardHeader title="Transactions">
+        <Button variant="outline" disabled>
+            <Upload className="mr-2 h-4 w-4" /> Import Statement
+        </Button>
         <ImportReceiptSheet />
         <AddTransactionSheet />
         <Button>
