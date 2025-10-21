@@ -89,7 +89,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="container grid lg:grid-cols-2 gap-12 items-center py-20 md:py-32">
+        <section className="container grid lg:grid-cols-2 gap-12 items-center py-20 md:py-32 px-4 md:px-6">
           <div className="flex flex-col items-start text-left">
             <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
               The Future of Accounting is Here
