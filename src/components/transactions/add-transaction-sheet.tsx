@@ -68,14 +68,19 @@ export function AddTransactionSheet() {
     const idToken = await auth.currentUser.getIdToken();
 
     try {
-      await handleAddTransaction({
+      const transactionPayload: any = {
         description,
         amount: type === 'Expense' ? -Math.abs(amount) : Math.abs(amount),
         type,
         account,
         date: new Date(),
-        projectId: projectId !== "none" ? projectId : undefined,
-      }, idToken);
+      };
+
+      if (projectId && projectId !== 'none') {
+        transactionPayload.projectId = projectId;
+      }
+
+      await handleAddTransaction(transactionPayload, idToken);
       
       toast({
         title: "Transaction Added",

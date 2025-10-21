@@ -109,14 +109,19 @@ export function ImportReceiptSheet() {
     const idToken = await user.getIdToken();
 
     try {
-      await handleAddTransaction({
+      const transactionPayload: any = {
         description,
-        amount,
-        type: 'Expense', // Receipts are always expenses
+        amount: -Math.abs(amount), // Receipts are always expenses
+        type: 'Expense',
         account,
         date: date || new Date(),
-        projectId: projectId !== "none" ? projectId : undefined,
-      }, idToken);
+      };
+      
+      if (projectId && projectId !== 'none') {
+        transactionPayload.projectId = projectId;
+      }
+
+      await handleAddTransaction(transactionPayload, idToken);
       
       toast({
         title: "Transaction Added",
