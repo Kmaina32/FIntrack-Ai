@@ -44,6 +44,8 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
+    "firebase-admin": "^12.3.0",
+    "firebase-functions": "^5.0.1",
     "genkit": "^1.20.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
