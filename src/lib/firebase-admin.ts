@@ -1,13 +1,9 @@
 import * as admin from 'firebase-admin';
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
-  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-  : undefined;
-
+// In this environment, the Admin SDK can automatically discover the credentials.
+// We don't need to manually parse the FIREBASE_SERVICE_ACCOUNT environment variable.
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
+  admin.initializeApp();
 }
 
 const db = admin.firestore();
