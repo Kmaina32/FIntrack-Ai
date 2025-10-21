@@ -7,7 +7,6 @@ import { collection, query, orderBy } from "firebase/firestore";
 import type { UserRole } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamTable } from "@/components/team/team-table";
-// import { AddMemberSheet } from "@/components/team/add-member-sheet";
 
 export default function TeamPage() {
   const { firestore, user } = useFirebase();
@@ -28,7 +27,6 @@ export default function TeamPage() {
           Team Management
         </h1>
         <div className="flex items-center space-x-2">
-          {/* <AddMemberSheet /> */}
            <Button disabled>
             <PlusCircle className="mr-2 h-4 w-4" /> Invite Member
           </Button>
