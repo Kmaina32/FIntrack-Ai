@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -36,6 +37,14 @@ function groupMessagesByDate(messages: ChatMessage[]): Record<string, ChatMessag
     }, {} as Record<string, ChatMessage[]>);
 }
 
+const suggestionPrompts = [
+    "What were my total expenses last month?",
+    "Show me my recent transactions.",
+    "What is my current net income?",
+    "What's the VAT rate in Kenya?",
+];
+
+
 export function Chatbot() {
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -54,19 +63,15 @@ export function Chatbot() {
   const { data: messages = [] } = useCollection<ChatMessage>(messagesQuery);
   const groupedHistory = React.useMemo(() => groupMessagesByDate(messages || []), [messages]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading || !user) return;
+  const sendQuery = async (queryText: string) => {
+    if (!queryText.trim() || isLoading || !user) return;
 
-    const userMessageContent = input;
-    setInput('');
     setIsLoading(true);
+    // Add user message to local state immediately for better UX
+    await handleAddChatMessage({ role: 'user', content: queryText }, await user.getIdToken());
 
     try {
-      await handleAddChatMessage({ role: 'user', content: userMessageContent }, await user.getIdToken());
-      
-      const result = await handleAiQuery({ query: userMessageContent });
-      
+      const result = await handleAiQuery({ query: queryText });
       const assistantMessage: Message = { role: 'assistant', content: result.answer };
       await handleAddChatMessage(assistantMessage, await user.getIdToken());
 
@@ -76,6 +81,18 @@ export function Chatbot() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    sendQuery(input);
+    setInput('');
+  };
+
+  const handleSuggestionClick = (prompt: string) => {
+    setInput('');
+    sendQuery(prompt);
   };
   
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
@@ -115,13 +132,28 @@ export function Chatbot() {
         <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
           {view === 'chat' ? (
             <div className="space-y-4 pr-4">
-              {messages?.length === 0 && (
-                 <div className="flex justify-start gap-3 text-sm">
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback><Bot size={20}/></AvatarFallback>
-                    </Avatar>
-                    <div className="rounded-lg px-3 py-2 bg-muted">
-                        <p>Welcome! How can I help you with your finances today?</p>
+              {messages?.length === 0 && !isLoading && (
+                 <div className="flex flex-col items-start gap-3 text-sm">
+                    <div className="flex items-start gap-3">
+                        <Avatar className="w-8 h-8">
+                            <AvatarFallback><Bot size={20}/></AvatarFallback>
+                        </Avatar>
+                        <div className="rounded-lg px-3 py-2 bg-muted">
+                            <p>Welcome! How can I help you with your finances today?</p>
+                        </div>
+                    </div>
+                    <div className="pl-11 pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {suggestionPrompts.map((prompt) => (
+                            <Button 
+                                key={prompt}
+                                variant="outline"
+                                size="sm"
+                                className="h-auto whitespace-normal text-left justify-start"
+                                onClick={() => handleSuggestionClick(prompt)}
+                            >
+                                {prompt}
+                            </Button>
+                        ))}
                     </div>
                   </div>
               )}
@@ -140,13 +172,13 @@ export function Chatbot() {
                   )}
                   <div
                     className={cn(
-                      'rounded-lg px-3 py-2',
+                      'rounded-lg px-3 py-2 max-w-[85%]',
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     )}
                   >
-                    <p>{message.content}</p>
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                   </div>
                    {message.role === 'user' && (
                     <Avatar className="w-8 h-8">
@@ -155,7 +187,7 @@ export function Chatbot() {
                   )}
                 </div>
               ))}
-               {isLoading && (
+               {isLoading && messages.length > 0 && (
                 <div className="flex justify-start gap-3 text-sm">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback><Bot size={20}/></AvatarFallback>
@@ -168,24 +200,28 @@ export function Chatbot() {
             </div>
           ) : (
             <div className="space-y-6 pr-4">
-                {Object.entries(groupedHistory).map(([date, historyMessages]) => (
-                    <div key={date}>
-                        <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 bg-background/90 py-1">
-                            {date}
+                {Object.keys(groupedHistory).length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center">No chat history found.</p>
+                ) : (
+                    Object.entries(groupedHistory).map(([date, historyMessages]) => (
+                        <div key={date}>
+                            <div className="text-center text-xs text-muted-foreground my-2 sticky top-0 bg-background/90 py-1">
+                                {date}
+                            </div>
+                            <div className="space-y-4">
+                                {historyMessages.map((message, index) => (
+                                    <div key={index} className={cn('flex gap-3 text-sm', message.role === 'user' ? 'justify-end' : 'justify-start')}>
+                                    {message.role === 'assistant' && <Avatar className="w-8 h-8"><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
+                                    <div className={cn('rounded-lg px-3 py-2 max-w-[85%]', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                        <p className="whitespace-pre-wrap">{message.content}</p>
+                                    </div>
+                                    {message.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback><UserIcon size={20}/></AvatarFallback></Avatar>}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="space-y-4">
-                            {historyMessages.map((message, index) => (
-                                <div key={index} className={cn('flex gap-3 text-sm', message.role === 'user' ? 'justify-end' : 'justify-start')}>
-                                {message.role === 'assistant' && <Avatar className="w-8 h-8"><AvatarFallback><Bot size={20}/></AvatarFallback></Avatar>}
-                                <div className={cn('rounded-lg px-3 py-2', message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                    <p>{message.content}</p>
-                                </div>
-                                {message.role === 'user' && <Avatar className="w-8 h-8"><AvatarFallback><UserIcon size={20}/></AvatarFallback></Avatar>}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
           )}
         </ScrollArea>
