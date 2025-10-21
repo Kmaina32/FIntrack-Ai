@@ -104,8 +104,8 @@ export type Invoice = {
     customerId: string;
     customerName: string; // Denormalized for easy display
     invoiceNumber: string;
-    issueDate: Timestamp | Date;
-    dueDate: Timestamp | Date;
+    issueDate: Timestamp | Date | string;
+    dueDate: Timestamp | Date | string;
     status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | 'Void';
     lineItems: InvoiceLineItem[];
     totalAmount: number;

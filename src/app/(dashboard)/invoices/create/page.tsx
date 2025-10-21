@@ -56,14 +56,14 @@ import { DashboardHeader } from '@/components/dashboard-header';
 
 const lineItemSchema = z.object({
   description: z.string().min(1, 'Description is required.'),
-  quantity: z.coerce.number().min(0, 'Quantity must be positive.'),
-  unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
+  quantity: z.coerce.number().min(0.01, 'Quantity must be positive.'),
+  unitPrice: z.coerce.number().min(0.01, 'Price must be positive.'),
 });
 
 const invoiceSchema = z.object({
   customerId: z.string().min(1, 'Customer is required.'),
-  issueDate: z.date(),
-  dueDate: z.date(),
+  issueDate: z.date({ required_error: "Issue date is required."}),
+  dueDate: z.date({ required_error: "Due date is required."}),
   lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required.'),
 });
 
@@ -117,12 +117,18 @@ export default function CreateInvoicePage() {
     try {
       const selectedCustomer = customers?.find(c => c.id === data.customerId);
       const idToken = await user.getIdToken();
-      await handleCreateInvoice({
-        ...data,
+      
+      const payload = {
+        customerId: data.customerId,
         customerName: selectedCustomer?.name || 'Unknown Customer',
-        totalAmount,
-        status: 'Draft',
-      }, idToken);
+        status: 'Draft' as const,
+        issueDate: data.issueDate.toISOString(),
+        dueDate: data.dueDate.toISOString(),
+        lineItems: data.lineItems,
+        totalAmount: totalAmount,
+      };
+
+      await handleCreateInvoice(payload, idToken);
 
       toast({
         title: 'Invoice Created',
