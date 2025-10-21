@@ -26,7 +26,7 @@ import { formatCurrency } from '@/lib/utils';
 import type { Transaction, Sale } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 import { startOfDay, endOfDay } from 'date-fns';
@@ -99,16 +99,18 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
   const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
   const today = new Date();
-  const startOfToday = startOfDay(today);
-  const endOfToday = endOfDay(today);
-
-  const dailySalesQuery = useMemoFirebase(() => 
-    user ? query(
-      collection(firestore, `users/${user.uid}/sales`),
-      where('date', '>=', startOfToday),
-      where('date', '<=', endOfToday)
-    ) : null
-  , [firestore, user]);
+  
+  const dailySalesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    const startOfToday = startOfDay(today);
+    const endOfToday = endOfDay(today);
+    return query(
+        collection(firestore, `users/${user.uid}/sales`),
+        where('date', '>=', Timestamp.fromDate(startOfToday)),
+        where('date', '<=', Timestamp.fromDate(endOfToday))
+    )
+  }, [firestore, user, today]);
+  
   const { data: dailySales, isLoading: dailySalesLoading } = useCollection<Sale>(dailySalesQuery);
   
   const salesQuery = useMemoFirebase(() =>
@@ -119,10 +121,10 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
 
   useEffect(() => {
     if (initialLoad && allSales) {
-        setSessionSales(allSales);
+        setSessionSales(allSales || []);
         setInitialLoad(false);
     }
-  }, [allSales, initialLoad])
+  }, [allSales, initialLoad]);
 
 
   const reportsData = useMemo(() => {
