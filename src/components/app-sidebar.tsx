@@ -7,6 +7,8 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupLabel,
 } from '@/components/ui/sidebar';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -27,66 +29,94 @@ import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
 
 
-const menuItems = [
+const menuGroups = [
   {
-    href: '/dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
+    label: 'Overview',
+    items: [
+      {
+        href: '/dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+      },
+      {
+        href: '/reports',
+        label: 'Reports',
+        icon: BarChart3,
+      },
+    ]
   },
   {
-    href: '/pos',
-    label: 'POS',
-    icon: ShoppingCart,
+    label: 'Sales',
+    items: [
+      {
+        href: '/pos',
+        label: 'POS',
+        icon: ShoppingCart,
+      },
+      {
+        href: '/invoices',
+        label: 'Invoices',
+        icon: ReceiptText,
+      },
+      {
+        href: '/customers',
+        label: 'Customers',
+        icon: Users,
+      },
+    ]
   },
   {
-    href: '/inventory',
-    label: 'Inventory',
-    icon: Boxes,
+    label: 'Purchases',
+    items: [
+       {
+        href: '/transactions',
+        label: 'Transactions',
+        icon: ArrowLeftRight,
+      },
+      {
+        href: '/vendors',
+        label: 'Vendors',
+        icon: Store,
+      },
+    ]
   },
   {
-    href: '/invoices',
-    label: 'Invoices',
-    icon: ReceiptText,
+      label: 'Management',
+      items: [
+         {
+            href: '/inventory',
+            label: 'Inventory',
+            icon: Boxes,
+        },
+        {
+            href: '/projects',
+            label: 'Projects',
+            icon: Briefcase,
+        },
+      ]
   },
   {
-    href: '/transactions',
-    label: 'Transactions',
-    icon: ArrowLeftRight,
-  },
-  {
-    href: '/accounts',
-    label: 'Accounts',
-    icon: BookUser,
-  },
-  {
-    href: '/customers',
-    label: 'Customers',
-    icon: Users,
-  },
-  {
-    href: '/vendors',
-    label: 'Vendors',
-    icon: Store,
-  },
-  {
-    href: '/projects',
-    label: 'Projects',
-    icon: Briefcase,
-  },
-  {
-    href: '/reports',
-    label: 'Reports',
-    icon: BarChart3,
-  },
+      label: 'Bookkeeping',
+      items: [
+        {
+            href: '/accounts',
+            label: 'Accounts',
+            icon: BookUser,
+        },
+      ]
+  }
 ];
 
-const adminMenuItems = [
-  {
-    href: '/admin',
-    label: 'Team',
-    icon: Users2,
-  },
-]
+const adminMenu = {
+    label: 'Settings',
+    items: [
+      {
+        href: '/team',
+        label: 'Team',
+        icon: Users2,
+      },
+    ]
+}
 
 export function AppSidebar({ user }: { user: User | null }) {
   const pathname = usePathname();
@@ -103,34 +133,44 @@ export function AppSidebar({ user }: { user: User | null }) {
 
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith(item.href)}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+          {menuGroups.map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              {group.items.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                    tooltip={item.label}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarGroup>
           ))}
-           {isAdmin && adminMenuItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith(item.href)}
-                tooltip={item.label}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+           {isAdmin && (
+             <SidebarGroup>
+                <SidebarGroupLabel>{adminMenu.label}</SidebarGroupLabel>
+                {adminMenu.items.map((item) => (
+                    <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton
+                        asChild
+                        isActive={pathname.startsWith(item.href)}
+                        tooltip={item.label}
+                    >
+                        <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarGroup>
+           )}
         </SidebarMenu>
       </SidebarContent>
 
