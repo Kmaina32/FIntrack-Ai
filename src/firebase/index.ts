@@ -27,7 +27,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
   const auth = getAuth(firebaseApp);
   const firestore = getFirestore(firebaseApp);
 
-  if (process.env.NEXT_PUBLIC_USE_EMULATORS) {
+  if (process.env.NEXT_PUBLIC_USE_EMULATORS === 'true') {
     const host = process.env.NEXT_PUBLIC_EMULATOR_HOST || 'localhost';
     console.log(`Connecting to Firebase Emulators at ${host}`);
     

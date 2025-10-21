@@ -22,6 +22,8 @@ import {
   ReceiptText,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { useUser } from '@/firebase';
+import type { UserRole } from '@/lib/types';
 
 
 const menuItems = [
@@ -65,15 +67,23 @@ const menuItems = [
     label: 'Reports',
     icon: BarChart3,
   },
+];
+
+const adminMenuItems = [
   {
     href: '/team',
     label: 'Team',
     icon: Users2,
   },
-];
+]
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const userRole = (user as any)?.role;
+
+  const isAdmin = userRole === 'Owner' || userRole === 'Admin';
+
 
   return (
     <>
@@ -84,6 +94,20 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
+            <SidebarMenuItem key={item.label}>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith(item.href)}
+                tooltip={item.label}
+              >
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+           {isAdmin && adminMenuItems.map((item) => (
             <SidebarMenuItem key={item.label}>
               <SidebarMenuButton
                 asChild

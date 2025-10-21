@@ -9,6 +9,7 @@ import {
   signInAnonymously,
   GoogleAuthProvider,
   signInWithPopup,
+  UserCredential,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +25,10 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getSdks } from '@/firebase/index';
+import { getApp } from 'firebase/app';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -61,15 +66,44 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { firestore } = getSdks(getApp());
+
+
+  const handlePostSignUp = async (userCredential: UserCredential) => {
+    const user = userCredential.user;
+    const userRef = doc(firestore, 'users', user.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      // Check if this is the first user
+      const usersCollection = await firestore.collection('users').limit(1).get();
+      const role = usersCollection.empty ? 'Owner' : 'Viewer';
+
+      await setDoc(userRef, {
+        email: user.email,
+        role: role,
+      });
+
+      if (role === 'Owner') {
+          const userRolesRef = doc(firestore, `users/${user.uid}/userRoles`, user.uid);
+          await setDoc(userRolesRef, {
+              email: user.email,
+              role: 'Owner'
+          });
+      }
+    }
+  };
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
     if (!auth) return;
     setLoading(true);
     try {
+      let userCredential;
       if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await handlePostSignUp(userCredential);
       }
       router.push('/dashboard');
     } catch (error: any) {
@@ -105,7 +139,8 @@ export default function LoginPage() {
     setLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+      await handlePostSignUp(userCredential);
       router.push('/dashboard');
     } catch (error: any) {
       toast({

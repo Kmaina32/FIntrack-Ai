@@ -14,6 +14,11 @@
           "type": "string",
           "description": "Email address of the user.",
           "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["Owner", "Admin", "Accountant", "Viewer"]
         }
       },
       "required": [

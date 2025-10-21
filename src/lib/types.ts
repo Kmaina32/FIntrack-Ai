@@ -1,4 +1,5 @@
 
+
 import { Timestamp } from "firebase/firestore";
 
 export type Transaction = {
@@ -33,6 +34,7 @@ export type User = {
   email: string;
   name?: string;
   avatarUrl?: string;
+  role?: 'Owner' | 'Admin' | 'Accountant' | 'Viewer';
 };
 
 export type BankAccount = {
