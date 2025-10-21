@@ -94,8 +94,9 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
       ...invoice,
       userId,
       invoiceNumber,
-      issueDate: new Date(invoice.issueDate),
-      dueDate: new Date(invoice.dueDate),
+      // The dates are now strings, so we can convert them to Firestore Timestamps directly
+      issueDate: new Date(invoice.issueDate as string),
+      dueDate: new Date(invoice.dueDate as string),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
@@ -131,4 +132,3 @@ export async function handleAnalyzeReceipt(
     return { error: "Failed to analyze receipt." };
   }
 }
-
