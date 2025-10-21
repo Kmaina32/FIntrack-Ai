@@ -44,6 +44,7 @@ export function AddProductSheet() {
     const productPayload = {
       name: formData.get('name') as string,
       description: formData.get('description') as string,
+      sku: formData.get('sku') as string,
       price: parseFloat(formData.get('price') as string),
       quantityInStock: parseInt(formData.get('quantityInStock') as string, 10),
       imageUrl: formData.get('imageUrl') as string || `https://picsum.photos/seed/${Math.random()}/400/400`,
@@ -91,6 +92,12 @@ export function AddProductSheet() {
                 Name
               </Label>
               <Input name="name" id="name" placeholder="e.g. T-Shirt" className="md:col-span-3" required/>
+            </div>
+             <div className="grid md:grid-cols-4 items-center gap-4">
+              <Label htmlFor="sku" className="md:text-right">
+                SKU / Barcode
+              </Label>
+              <Input name="sku" id="sku" placeholder="e.g. 9780123456789" className="md:col-span-3" />
             </div>
             <div className="grid md:grid-cols-4 items-start gap-4">
               <Label htmlFor="description" className="md:text-right pt-2">

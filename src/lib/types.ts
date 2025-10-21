@@ -120,6 +120,7 @@ export type Product = {
   userId: string;
   name: string;
   description?: string;
+  sku?: string;
   price: number;
   quantityInStock: number;
   imageUrl?: string;

@@ -398,6 +398,10 @@
           "type": "string",
           "description": "A brief description of the product."
         },
+        "sku": {
+            "type": "string",
+            "description": "Stock Keeping Unit, used as barcode identifier."
+        },
         "price": {
           "type": "number",
           "description": "The selling price of the product."
@@ -542,7 +546,7 @@
         "definition": {
           "entityName": "Product",
           "schema": {
-            "$ref": "#/backend/entities/Product"
+            "$ref": "#/entities/Product"
           },
           "description": "Stores inventory products for a specific user's POS system.",
           "params": [
@@ -562,7 +566,7 @@
         "definition": {
           "entityName": "Sale",
           "schema": {
-            "$ref": "#/backend/entities/Sale"
+            "$ref": "#/entities/Sale"
           },
           "description": "Stores POS sale records for a specific user.",
           "params": [
@@ -582,7 +586,7 @@
         "definition": {
           "entityName": "Invoice",
           "schema": {
-            "$ref": "#/backend/entities/Invoice"
+            "$ref": "#/entities/Invoice"
           },
           "description": "Stores invoice information for a specific user.",
           "params": [
@@ -602,7 +606,7 @@
         "definition": {
           "entityName": "BankAccount",
           "schema": {
-            "$ref": "#/backend/entities/BankAccount"
+            "$ref": "#/entities/BankAccount"
           },
           "description": "Stores bank account information for a specific user. Path-based ownership is implemented.",
           "params": [
@@ -622,7 +626,7 @@
         "definition": {
           "entityName": "Transaction",
           "schema": {
-            "$ref": "#/backend/entities/Transaction"
+            "$ref": "#/entities/Transaction"
           },
           "description": "Stores transaction data associated with a specific bank account. Path-based ownership is implemented.",
           "params": [
@@ -642,7 +646,7 @@
         "definition": {
           "entityName": "Account",
           "schema": {
-            "$ref": "#/backend/entities/Account"
+            "$ref": "#/entities/Account"
           },
           "description": "Stores chart of accounts entries created by a specific user. Path-based ownership is implemented.",
           "params": [
@@ -662,7 +666,7 @@
         "definition": {
           "entityName": "Customer",
           "schema": {
-            "$ref": "#/backend/entities/Customer"
+            "$ref": "#/entities/Customer"
           },
           "description": "Stores customer information for a specific user. Path-based ownership is implemented.",
           "params": [
@@ -682,7 +686,7 @@
         "definition": {
           "entityName": "Vendor",
           "schema": {
-            "$ref": "#/backend/entities/Vendor"
+            "$ref": "#/entities/Vendor"
           },
           "description": "Stores vendor information for a specific user. Path-based ownership is implemented.",
           "params": [
@@ -702,7 +706,7 @@
         "definition": {
           "entityName": "Project",
           "schema": {
-            "$ref": "#/backend/entities/Project"
+            "$ref": "#/entities/Project"
           },
           "description": "Stores project information for a specific user.",
           "params": [
@@ -722,7 +726,7 @@
         "definition": {
           "entityName": "UserRole",
           "schema": {
-            "$ref": "#/backend/entities/UserRole"
+            "$ref": "#/entities/UserRole"
           },
           "description": "Stores user roles for a specific user's team.",
           "params": [
@@ -742,7 +746,7 @@
         "definition": {
           "entityName": "Employee",
           "schema": {
-            "$ref": "#/backend/entities/Employee"
+            "$ref": "#/entities/Employee"
           },
           "description": "Stores employee data for the payroll system.",
           "params": [
@@ -756,7 +760,7 @@
         "definition": {
           "entityName": "PayrollRun",
           "schema": {
-            "$ref": "#/backend/entities/PayrollRun"
+            "$ref": "#/entities/PayrollRun"
           },
           "description": "Stores historical records of completed payroll runs.",
           "params": [

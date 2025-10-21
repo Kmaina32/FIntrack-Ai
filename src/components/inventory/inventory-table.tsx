@@ -102,7 +102,7 @@ export function InventoryTable({ initialProducts }: { initialProducts: Product[]
                         <div className="flex items-start gap-4">
                             <Image src={product.imageUrl || `https://picsum.photos/seed/${product.id}/100/100`} alt={product.name} width={60} height={60} className="rounded-md object-cover" />
                             <div className="flex-1">
-                                <p className="text-muted-foreground">{product.description || 'No description'}</p>
+                                <p className="text-muted-foreground">{product.sku || 'No SKU'}</p>
                                 <p className="font-semibold">{formatCurrency(product.price)}</p>
                                 <Badge variant={product.quantityInStock > 0 ? 'default' : 'destructive'}>
                                     {product.quantityInStock} in stock
@@ -125,7 +125,7 @@ export function InventoryTable({ initialProducts }: { initialProducts: Product[]
             <TableRow>
               <TableHead className="w-[80px]">Image</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
+              <TableHead>SKU</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -138,7 +138,7 @@ export function InventoryTable({ initialProducts }: { initialProducts: Product[]
                     <Image src={product.imageUrl || `https://picsum.photos/seed/${product.id}/100/100`} alt={product.name} width={40} height={40} className="rounded-md object-cover" />
                 </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell className="max-w-xs truncate">{product.description}</TableCell>
+                <TableCell className="font-mono text-xs">{product.sku || 'N/A'}</TableCell>
                 <TableCell>{formatCurrency(product.price)}</TableCell>
                 <TableCell>
                     <Badge variant={product.quantityInStock > 10 ? 'default' : (product.quantityInStock > 0 ? 'secondary' : 'destructive')}>
