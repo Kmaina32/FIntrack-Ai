@@ -88,12 +88,18 @@ export default function LoginPage() {
          }
       }
 
-      await setDoc(userRef, {
-        email: user.email,
+      // Prepare user data, only including email if it exists.
+      const userData: { role: string; email?: string } = {
         role: role,
-      });
+      };
+      if (user.email) {
+        userData.email = user.email;
+      }
 
-      if (role === 'Owner' || role === 'Admin') {
+      await setDoc(userRef, userData);
+
+      // Only create the userRole document if email and role exist
+      if ((role === 'Owner' || role === 'Admin') && user.email) {
           const userRolesRef = doc(firestore, `users/${user.uid}/userRoles`, user.uid);
           await setDoc(userRolesRef, {
               email: user.email,
@@ -267,5 +273,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
