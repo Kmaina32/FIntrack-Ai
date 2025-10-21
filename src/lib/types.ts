@@ -112,3 +112,27 @@ export type Invoice = {
     lineItems: InvoiceLineItem[];
     totalAmount: number;
 };
+
+export type Product = {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  price: number;
+  quantityInStock: number;
+  imageUrl?: string;
+};
+
+export type CartItem = Product & {
+  quantity: number;
+};
+
+export type Sale = {
+  id: string;
+  userId: string;
+  lineItems: CartItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  date: Timestamp | Date | string;
+};

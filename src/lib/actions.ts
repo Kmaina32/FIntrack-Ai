@@ -8,8 +8,8 @@ import { getFirebaseAdmin } from "./firebase-admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { DecodedIdToken } from "firebase-admin/auth";
-import type { Invoice, Transaction } from "./types";
-import { FieldValue } from "firebase-admin/firestore";
+import type { Invoice, Product, Sale, Transaction } from "./types";
+import { FieldValue, writeBatch } from "firebase-admin/firestore";
 
 
 async function getUserId(idToken: string | null | undefined): Promise<string> {
@@ -131,5 +131,56 @@ export async function handleAnalyzeReceipt(
   } catch (error) {
     console.error("Error analyzing receipt:", error);
     return { error: "Failed to analyze receipt." };
+  }
+}
+
+export async function handleAddProduct(product: Omit<Product, 'id'>, idToken: string) {
+  const userId = await getUserId(idToken);
+  const { db } = getFirebaseAdmin();
+
+  try {
+    const productRef = await db.collection('users').doc(userId).collection('products').add(product);
+    return { success: true, id: productRef.id };
+  } catch (error) {
+    console.error("Error adding product:", error);
+    throw new Error("Failed to add product.");
+  }
+}
+
+export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idToken: string) {
+  const userId = await getUserId(idToken);
+  const { db } = getFirebaseAdmin();
+  const batch = db.batch();
+
+  try {
+    // 1. Create a transaction for the sale income
+    const transaction: Omit<Transaction, 'id'> = {
+      description: `POS Sale - ${new Date().toISOString()}`,
+      amount: sale.total,
+      type: 'Income',
+      account: 'Sales Revenue', // Assuming a default account
+      date: new Date(),
+    };
+    const transactionRef = db.collection('users').doc(userId).collection('transactions').doc();
+    batch.set(transactionRef, transaction);
+
+    // 2. Decrement stock for each item in the sale
+    for (const item of sale.lineItems) {
+      const productRef = db.collection('users').doc(userId).collection('products').doc(item.id);
+      batch.update(productRef, {
+        quantityInStock: FieldValue.increment(-item.quantity)
+      });
+    }
+
+    // 3. (Optional) Save the sale details
+    const saleRef = db.collection('users').doc(userId).collection('sales').doc();
+    batch.set(saleRef, { ...sale, userId });
+    
+    await batch.commit();
+
+    return { success: true, saleId: saleRef.id };
+  } catch (error) {
+    console.error("Error processing sale:", error);
+    throw new Error("Failed to process sale.");
   }
 }

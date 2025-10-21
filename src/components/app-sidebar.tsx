@@ -20,6 +20,8 @@ import {
   Briefcase,
   Users2,
   ReceiptText,
+  ShoppingCart,
+  Boxes,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import type { User } from '@/lib/types';
@@ -30,6 +32,16 @@ const menuItems = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    href: '/pos',
+    label: 'POS',
+    icon: ShoppingCart,
+  },
+  {
+    href: '/inventory',
+    label: 'Inventory',
+    icon: Boxes,
   },
   {
     href: '/invoices',

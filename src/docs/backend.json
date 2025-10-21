@@ -367,6 +367,44 @@
             }
         },
         "required": ["description", "quantity", "unitPrice", "total"]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "description": "Represents a product in the inventory for the POS system.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Product."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Product)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "The selling price of the product."
+        },
+        "quantityInStock": {
+          "type": "number",
+          "description": "The quantity of the product available in stock."
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for the product image."
+        }
+      },
+      "required": ["id", "userId", "name", "price", "quantityInStock"]
     }
   },
   "auth": {
@@ -390,6 +428,26 @@
             {
               "name": "userId",
               "description": "The unique identifier for the user.  This is the `request.auth.uid`."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores inventory products for a specific user's POS system.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
             }
           ]
         }
