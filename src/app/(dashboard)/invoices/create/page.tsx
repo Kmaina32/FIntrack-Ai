@@ -128,19 +128,23 @@ export default function CreateInvoicePage() {
         totalAmount: totalAmount,
       };
 
-      await handleCreateInvoice(payload, idToken);
+      const result = await handleCreateInvoice(payload, idToken);
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
 
       toast({
         title: 'Invoice Created',
         description: 'Your invoice has been saved as a draft.',
       });
       router.push('/invoices');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to create invoice.',
+        description: error.message || 'Failed to create invoice.',
       });
     } finally {
         setIsSubmitting(false);

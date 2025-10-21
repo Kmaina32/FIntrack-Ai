@@ -86,17 +86,17 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
     const orgRef = db.collection('users').doc(userId);
     const invoiceRef = orgRef.collection('invoices');
 
-    // Simple sequential invoice number for now. A more robust solution is needed for production.
-    const invoiceCountSnapshot = await invoiceRef.count().get();
-    const invoiceNumber = `INV-${(invoiceCountSnapshot.data().count + 1).toString().padStart(4, '0')}`;
+    // Safer count method using .get() and .size
+    const invoicesSnapshot = await invoiceRef.get();
+    const invoiceNumber = `INV-${(invoicesSnapshot.size + 1).toString().padStart(4, '0')}`;
 
     const newInvoice = {
       ...invoice,
       userId,
       invoiceNumber,
-      // Convert date strings from the payload into Date objects for Firestore
-      issueDate: new Date(invoice.issueDate),
-      dueDate: new Date(invoice.dueDate),
+      // Add guards for dates
+      issueDate: invoice.issueDate ? new Date(invoice.issueDate) : new Date(),
+      dueDate: invoice.dueDate ? new Date(invoice.dueDate) : new Date(),
     };
 
     const docRef = await invoiceRef.add(newInvoice);
@@ -104,7 +104,8 @@ export async function handleCreateInvoice(invoice: Omit<Invoice, 'id' | 'userId'
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Error creating invoice:", error);
-    throw new Error("Failed to create invoice.");
+    // Return a more structured error for the client
+    return { error: "Failed to create invoice on the server." };
   }
 }
 
