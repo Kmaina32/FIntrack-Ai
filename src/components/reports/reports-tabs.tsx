@@ -109,7 +109,7 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
         where('date', '>=', Timestamp.fromDate(startOfToday)),
         where('date', '<=', Timestamp.fromDate(endOfToday))
     )
-  }, [firestore, user, today]);
+  }, [firestore, user]);
   
   const { data: dailySales, isLoading: dailySalesLoading } = useCollection<Sale>(dailySalesQuery);
   
@@ -208,7 +208,7 @@ export function ReportsTabs({ onTabChange, onDataLoad }: ReportsTabsProps) {
 
   return (
     <Tabs defaultValue="income-statement" className="space-y-4" onValueChange={onTabChange}>
-      <TabsList className="grid grid-cols-3 md:grid-cols-5 w-full md:w-auto">
+      <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full h-auto">
         <TabsTrigger value="income-statement">Income Statement</TabsTrigger>
         <TabsTrigger value="balance-sheet">Balance Sheet</TabsTrigger>
         <TabsTrigger value="cash-flow">Cash Flow</TabsTrigger>

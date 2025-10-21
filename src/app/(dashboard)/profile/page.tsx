@@ -22,8 +22,8 @@ export default function ProfilePage() {
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
       <DashboardHeader title="Profile" />
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-1">
+      <div className="grid gap-8 md:grid-cols-3">
+        <div className="md:col-span-1">
           <Card>
             <CardHeader className="items-center text-center">
               <Avatar className="h-24 w-24">
@@ -40,7 +40,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="font-headline">Settings</CardTitle>

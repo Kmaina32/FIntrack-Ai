@@ -69,6 +69,10 @@ export default function LoginPage() {
   const { toast } = useToast();
   const { firestore } = getSdks(getApp());
 
+  const onTabChange = () => {
+    setEmail('');
+    setPassword('');
+  }
 
   const handlePostSignUp = async (userCredential: UserCredential) => {
     const user = userCredential.user;
@@ -153,12 +157,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-  
-  const onTabChange = () => {
-    setEmail('');
-    setPassword('');
-  }
-
 
   return (
     <div className="w-full lg:grid lg:min-h-screen lg:grid-cols-2">
@@ -267,8 +265,7 @@ export default function LoginPage() {
         <Image
           src="https://corizo.in/wp-content/uploads/2024/11/Finances-stock-image_-Image-of-finances-chart-banking-15530201.jpg"
           alt="Abstract art with financial charts"
-          width="1200"
-          height="1080"
+          fill
           className="h-full w-full object-cover dark:brightness-[0.3]"
           data-ai-hint="financial abstract"
         />

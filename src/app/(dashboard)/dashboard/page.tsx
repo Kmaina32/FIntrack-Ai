@@ -74,7 +74,7 @@ export default function DashboardPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <DashboardHeader title="Dashboard" />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {transactionsLoading || summaryCards.length === 0 ? (
           <>
             <Skeleton className="h-[126px]" />
@@ -88,8 +88,8 @@ export default function DashboardPage() {
           ))
         )}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      <div className="grid gap-4 lg:grid-cols-7">
+        <Card className="col-span-full lg:col-span-4">
           <CardHeader>
             <CardTitle className="font-headline">Overview</CardTitle>
           </CardHeader>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
              {transactionsLoading ? <Skeleton className="h-[350px]" /> : <OverviewChart transactions={transactions || []} />}
           </CardContent>
         </Card>
-        <Card className="col-span-4 lg:col-span-3">
+        <Card className="col-span-full lg:col-span-3">
           <CardHeader>
             <CardTitle className="font-headline">Recent Transactions</CardTitle>
             <CardDescription>

@@ -33,7 +33,7 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string
             <div className="text-accent mb-1">
                 {icon}
             </div>
-            <p className="text-xl md:text-4xl font-bold font-headline">{value}</p>
+            <p className="text-2xl md:text-4xl font-bold font-headline">{value}</p>
             <p className="text-muted-foreground uppercase text-xs tracking-widest">{label}</p>
         </div>
     )
@@ -41,7 +41,7 @@ function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string
 
 function PartnerLogo({ name }: { name: string }) {
   return (
-    <div className="flex items-center justify-center text-muted-foreground font-semibold text-xl">
+    <div className="flex items-center justify-center text-muted-foreground font-semibold text-lg sm:text-xl">
       {name}
     </div>
   )
@@ -64,9 +64,9 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="container relative py-20 md:py-32 px-4 md:px-6">
+        <section className="container relative py-20 md:py-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="relative z-10 flex flex-col items-start text-left px-4 md:px-6">
+            <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left">
               <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight">
                 The Future of Accounting is Here
               </h1>
@@ -80,14 +80,14 @@ export default function LandingPage() {
                 </Button>
               </div>
                <div className="w-full pt-12">
-                   <div className="grid grid-cols-3 gap-4 md:gap-8 max-w-4xl">
+                   <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto lg:mx-0">
                       <StatCard icon={<Users className="h-6 w-6 md:h-8 md:w-8"/>} value="10k+" label="Users" />
                       <StatCard icon={<FileText className="h-6 w-6 md:h-8 md:w-8"/>} value="500k+" label="Invoices" />
                       <StatCard icon={<TrendingUp className="h-6 w-6 md:h-8 md:w-8"/>} value="1.2M+" label="Transactions" />
                   </div>
               </div>
             </div>
-             <div className="absolute inset-0 lg:relative w-full h-full lg:h-[60vh] rounded-lg overflow-hidden shadow-2xl px-4 md:px-6">
+             <div className="relative w-full h-64 lg:h-auto lg:aspect-square rounded-lg overflow-hidden shadow-2xl">
                   <Image 
                       src="https://www.accountsjunction.com/BlogImg/artificial-intelligence-in-accounting.jpg_1754046459.jpg"
                       alt="AI in accounting"
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 <div className="text-center mb-12">
                     <h2 className="text-3xl font-bold font-headline">Trusted by Leading Companies</h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-8 items-center">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center">
                     <PartnerLogo name="Innovate Inc." />
                     <PartnerLogo name="Quantum Corp." />
                     <PartnerLogo name="Strive Solutions" />
