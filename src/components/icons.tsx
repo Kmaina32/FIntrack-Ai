@@ -1,7 +1,7 @@
-import { Landmark } from 'lucide-react';
+import { AreaChart } from 'lucide-react';
 
 export const Icons = {
   Logo: (props: React.SVGProps<SVGSVGElement>) => (
-    <Landmark {...props} />
+    <AreaChart {...props} />
   ),
 };
