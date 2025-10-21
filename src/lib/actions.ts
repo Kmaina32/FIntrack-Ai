@@ -41,18 +41,18 @@ export async function handleAiCategorize(
   }
 }
 
-export async function handleUpdateTransactionCategory(transactionId: string, category: string, idToken: string) {
+export async function handleUpdateTransactionCategory(transactionId: string, account: string, idToken: string) {
   const userId = await getUserId(idToken);
   const { db } = getFirebaseAdmin();
 
   try {
     const transactionRef = db.collection('users').doc(userId).collection('transactions').doc(transactionId);
-    await transactionRef.update({ category });
+    await transactionRef.update({ account });
     revalidatePath("/transactions");
     return { success: true };
   } catch (error) {
-    console.error("Error updating transaction category:", error);
-    throw new Error("Failed to update transaction category.");
+    console.error("Error updating transaction account:", error);
+    throw new Error("Failed to update transaction account.");
   }
 }
 
@@ -89,3 +89,4 @@ export async function handleAiQuery(
     return { answer: "Sorry, I encountered an error while processing your request." };
   }
 }
+    

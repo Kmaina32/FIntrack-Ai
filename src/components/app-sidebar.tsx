@@ -17,6 +17,7 @@ import {
   ArrowLeftRight,
   BarChart3,
   LogOut,
+  BookUser,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { useAuth, useUser } from '@/firebase';
@@ -33,6 +34,11 @@ const menuItems = [
     href: '/transactions',
     label: 'Transactions',
     icon: ArrowLeftRight,
+  },
+  {
+    href: '/accounts',
+    label: 'Accounts',
+    icon: BookUser,
   },
   {
     href: '/reports',
@@ -100,3 +106,4 @@ export function AppSidebar() {
     </>
   );
 }
+    

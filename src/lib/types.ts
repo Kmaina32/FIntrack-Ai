@@ -6,7 +6,7 @@ export type Transaction = {
   description: string;
   amount: number;
   type: 'Income' | 'Expense';
-  category: string;
+  account: string; // Changed from category
   bankAccountId?: string;
 };
 
@@ -41,9 +41,11 @@ export type BankAccount = {
   bankName: string;
 };
 
-export type Category = {
-    id: string;
-    userId: string;
-    name: string;
-    description: string;
+export type Account = {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  type: 'Asset' | 'Liability' | 'Equity' | 'Income' | 'Expense';
 };
+    

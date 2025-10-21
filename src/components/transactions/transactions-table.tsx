@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { Transaction, Category } from '@/lib/types';
+import type { Transaction, Account } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
@@ -37,11 +37,11 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   const auth = useAuth();
   const { firestore, user } = useFirebase();
 
-  const categoriesQuery = useMemoFirebase(() => 
-    user ? query(collection(firestore, `users/${user.uid}/categories`)) : null,
+  const accountsQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, `users/${user.uid}/accounts`)) : null,
     [firestore, user]
   );
-  const { data: categories } = useCollection<Category>(categoriesQuery);
+  const { data: accounts } = useCollection<Account>(accountsQuery);
 
   React.useEffect(() => {
     setTransactions(initialTransactions);
@@ -53,20 +53,20 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
     currentPage * PAGE_SIZE
   );
 
-  const handleCategoryChange = async (transactionId: string, newCategory: string) => {
+  const handleCategoryChange = async (transactionId: string, newAccount: string) => {
     const transaction = transactions.find(t => t.id === transactionId);
     if (!transaction) return;
 
-    if (newCategory === 'auto') {
+    if (newAccount === 'auto') {
       setLoadingCategoryId(transactionId);
       try {
         const result = await handleAiCategorize({
           transactionDescription: transaction.description,
-          previousCategories: initialTransactions.slice(0, 10).map(t => ({ description: t.description, category: t.category })),
+          previousCategories: initialTransactions.slice(0, 10).map(t => ({ description: t.description, category: t.account })),
         });
         
         if (result && 'category' in result && result.category) {
-          await updateTransactionCategory(transactionId, result.category);
+          await updateTransactionAccount(transactionId, result.category);
           toast({
             title: "Auto-Categorized!",
             description: `Transaction set to "${result.category}" with ${Math.round(result.confidence * 100)}% confidence.`,
@@ -85,25 +85,25 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
         setLoadingCategoryId(null);
       }
     } else {
-      await updateTransactionCategory(transactionId, newCategory);
+      await updateTransactionAccount(transactionId, newAccount);
     }
   };
   
-  const updateTransactionCategory = async (transactionId: string, category: string) => {
+  const updateTransactionAccount = async (transactionId: string, account: string) => {
      try {
        if (!auth?.currentUser) {
          throw new Error("User not authenticated");
        }
        const idToken = await auth.currentUser.getIdToken();
-      await handleUpdateTransactionCategory(transactionId, category, idToken);
+      await handleUpdateTransactionCategory(transactionId, account, idToken);
       // The local state will be updated via the real-time listener,
       // so we don't need to call setTransactions here anymore.
     } catch (error) {
-      console.error("Failed to update transaction category:", error);
+      console.error("Failed to update transaction account:", error);
       toast({
         variant: "destructive",
         title: "Update Failed",
-        description: "Could not update the transaction category.",
+        description: "Could not update the transaction account.",
       });
     }
   };
@@ -139,7 +139,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>Account</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
           </TableHeader>
@@ -152,18 +152,18 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
                   {loadingCategoryId === transaction.id ? (
                      <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Select onValueChange={(value) => handleCategoryChange(transaction.id, value)} value={transaction.category}>
+                    <Select onValueChange={(value) => handleCategoryChange(transaction.id, value)} value={transaction.account}>
                       <SelectTrigger className="w-[180px] h-8 text-xs">
                         <SelectValue asChild>
-                           <Badge variant={getCategoryVariant(transaction.category)} className="capitalize truncate">
-                            {transaction.category}
+                           <Badge variant={getCategoryVariant(transaction.account)} className="capitalize truncate">
+                            {transaction.account}
                           </Badge>
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="auto">Auto-categorize (AI)</SelectItem>
-                        {categories?.map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                        {accounts?.map(acc => (
+                          <SelectItem key={acc.id} value={acc.name}>{acc.name}</SelectItem>
                         ))}
                          <SelectItem value="Uncategorized">Uncategorized</SelectItem>
                       </SelectContent>
@@ -192,3 +192,4 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
     </>
   );
 }
+    

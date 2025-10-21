@@ -25,7 +25,7 @@ import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleAddTransaction } from '@/lib/actions';
 import { useAuth, useCollection, useFirebase, useMemoFirebase } from '@/firebase';
-import type { Category } from '@/lib/types';
+import type { Account } from '@/lib/types';
 import { collection, query } from 'firebase/firestore';
 
 export function AddTransactionSheet() {
@@ -35,11 +35,11 @@ export function AddTransactionSheet() {
   const auth = useAuth();
   const { firestore, user } = useFirebase();
 
-  const categoriesQuery = useMemoFirebase(() => 
-    user ? query(collection(firestore, `users/${user.uid}/categories`)) : null,
+  const accountsQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, `users/${user.uid}/accounts`)) : null,
     [firestore, user]
   );
-  const { data: categories } = useCollection<Category>(categoriesQuery);
+  const { data: accounts } = useCollection<Account>(accountsQuery);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -47,7 +47,7 @@ export function AddTransactionSheet() {
     const description = formData.get('description') as string;
     const amount = parseFloat(formData.get('amount') as string);
     const type = formData.get('type') as 'Income' | 'Expense';
-    const category = formData.get('category') as string;
+    const account = formData.get('account') as string;
     
     if (!auth?.currentUser) {
        toast({
@@ -65,7 +65,7 @@ export function AddTransactionSheet() {
         description,
         amount: type === 'Expense' ? -Math.abs(amount) : Math.abs(amount),
         type,
-        category,
+        account,
         date: new Date(),
       }, idToken);
       
@@ -132,17 +132,17 @@ export function AddTransactionSheet() {
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category
+              <Label htmlFor="account" className="text-right">
+                Account
               </Label>
-              <Select name="category" required>
+              <Select name="account" required>
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a category" />
+                  <SelectValue placeholder="Select an account" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories?.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.name}>
-                      {cat.name}
+                  {accounts?.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.name}>
+                      {acc.name}
                     </SelectItem>
                   ))}
                    <SelectItem value="Uncategorized">Uncategorized</SelectItem>
@@ -161,3 +161,4 @@ export function AddTransactionSheet() {
     </Sheet>
   );
 }
+    
