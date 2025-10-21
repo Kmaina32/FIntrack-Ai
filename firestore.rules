@@ -2,152 +2,190 @@
  * @fileoverview Firestore Security Rules for FinTrack AI application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Each user has full control over their own data,
- * and no access to other users' data.  Rules leverage path-based authorization and avoid complex `get()` calls.
+ * This ruleset enforces a strict user-ownership model, ensuring that users can only access their own data.
  *
  * Data Structure:
- * All data is nested under /users/{userId}, ensuring clear ownership.  Subcollections are used to store
- * related entities like bank accounts, transactions, accounts, customers, and vendors.
+ * All data is nested under /users/{userId}, creating a clear ownership hierarchy. Each user owns their bank accounts, transactions, accounts (chart of accounts), customers, and vendors.
  *
  * Key Security Decisions:
- * - Users can only create, read, update, and delete data within their own user ID space.
- * - Listing of user subcollections is restricted to the owner.
- * - The rules prioritize security and assume data integrity.  Data validation is kept minimal to enable rapid prototyping.
+ * - All user-related data is stored under the /users/{userId} path, enabling path-based access control.
+ * - List operations are secured to prevent unauthorized access to other users' data.
+ * - The rules are designed to be atomic, avoiding the need for `get()` calls in security rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Root match to prevent unauthorized access to the entire database.
-     * @path /databases/{database}/documents
-     * @allow NONE
-     * @deny All requests to the root path are denied to enforce security.
-     * @principle Prevents accidental open access by requiring explicit rules for all paths.
-     */
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    /**
-     * @description Rules for the /users/{userId} document.
+     * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow create (create) if request.auth.uid == userId. Allows a user to create their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to get their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents a user from creating a profile with a different ID.
-     * @principle Enforces user-ownership and prevents unauthorized profile creation or modification.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create their own profile if the userId matches their auth.uid.
+     * @deny (create) User 'otherUserId' cannot create a profile with userId 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2'.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own profile.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' profile.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own profile.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' profile.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own profile.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' profile.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/bankAccounts/{bankAccountId} collection.
+     * @description Controls access to bank account information for a specific user.
      * @path /users/{userId}/bankAccounts/{bankAccountId}
-     * @allow create (create) if isSignedIn() && isOwner(userId). Allows a user to create bank accounts in their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to read bank accounts in their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update bank accounts in their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete bank accounts in their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents creating bank accounts in other user profiles.
-     * @principle Enforces user-ownership for bank accounts.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create a bank account under their user id.
+     * @deny (create) User 'otherUserId' cannot create a bank account under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own bank account.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's bank account.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list bank accounts under their user id.
+     * @deny (list) User 'otherUserId' cannot list bank accounts under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own bank account.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's bank account.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own bank account.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's bank account.
+     * @principle Enforces path-based ownership.
      */
     match /users/{userId}/bankAccounts/{bankAccountId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/transactions/{transactionId} collection.
+     * @description Controls access to transaction data associated with a specific bank account.
      * @path /users/{userId}/transactions/{transactionId}
-     * @allow create (create) if isSignedIn() && isOwner(userId). Allows a user to create transactions in their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to read transactions in their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update transactions in their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete transactions in their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents creating transactions in other user profiles.
-     * @principle Enforces user-ownership for transactions.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create a transaction under their user id.
+     * @deny (create) User 'otherUserId' cannot create a transaction under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own transaction.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's transaction.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list transactions under their user id.
+     * @deny (list) User 'otherUserId' cannot list transactions under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's transaction.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own transaction.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's transaction.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own transaction.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's transaction.
+     * @principle Enforces path-based ownership.
      */
     match /users/{userId}/transactions/{transactionId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.bankAccountId != null;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.bankAccountId != null;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/accounts/{accountId} collection.
+     * @description Controls access to chart of accounts entries created by a specific user.
      * @path /users/{userId}/accounts/{accountId}
-     * @allow create (create) if isSignedIn() && isOwner(userId). Allows a user to create accounts in their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to read accounts in their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update accounts in their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete accounts in their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents creating accounts in other user profiles.
-     * @principle Enforces user-ownership for accounts.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create an account under their user id.
+     * @deny (create) User 'otherUserId' cannot create an account under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own account.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's account.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list accounts under their user id.
+     * @deny (list) User 'otherUserId' cannot list accounts under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's account.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own account.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's account.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own account.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's account.
+     * @principle Enforces path-based ownership.
      */
     match /users/{userId}/accounts/{accountId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/customers/{customerId} collection.
+     * @description Controls access to customer information for a specific user.
      * @path /users/{userId}/customers/{customerId}
-     * @allow create (create) if isSignedIn() && isOwner(userId). Allows a user to create customers in their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to read customers in their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update customers in their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete customers in their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents creating customers in other user profiles.
-     * @principle Enforces user-ownership for customers.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create a customer under their user id.
+     * @deny (create) User 'otherUserId' cannot create a customer under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own customer.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's customer.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list customers under their user id.
+     * @deny (list) User 'otherUserId' cannot list customers under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's customer.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own customer.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's customer.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own customer.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's customer.
+     * @principle Enforces path-based ownership.
      */
     match /users/{userId}/customers/{customerId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Rules for the /users/{userId}/vendors/{vendorId} collection.
+     * @description Controls access to vendor information for a specific user.
      * @path /users/{userId}/vendors/{vendorId}
-     * @allow create (create) if isSignedIn() && isOwner(userId). Allows a user to create vendors in their own profile.
-     * @allow get (get) if isSignedIn() && isOwner(userId). Allows a user to read vendors in their own profile.
-     * @allow update (update) if isSignedIn() && isOwner(userId). Allows a user to update vendors in their own profile.
-     * @allow delete (delete) if isSignedIn() && isOwner(userId). Allows a user to delete vendors in their own profile.
-     * @deny create (create) if request.auth.uid != userId. Prevents creating vendors in other user profiles.
-     * @principle Enforces user-ownership for vendors.
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create a vendor under their user id.
+     * @deny (create) User 'otherUserId' cannot create a vendor under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own vendor.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's vendor.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list vendors under their user id.
+     * @deny (list) User 'otherUserId' cannot list vendors under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's vendor.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own vendor.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's vendor.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own vendor.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's vendor.
+     * @principle Enforces path-based ownership.
      */
     match /users/{userId}/vendors/{vendorId} {
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
+    /**
+     * @description Controls access to chat messages for a specific user.
+     * @path /users/{userId}/chatMessages/{chatMessageId}
+     * @allow (create) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can create a chat message under their user id.
+     * @deny (create) User 'otherUserId' cannot create a chat message under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's user id.
+     * @allow (get) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can read their own chat message.
+     * @deny (get) User 'otherUserId' cannot read User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's chat message.
+     * @allow (list) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can list chat messages under their user id.
+     * @deny (list) User 'otherUserId' cannot list chat messages under User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's chat message.
+     * @allow (update) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can update their own chat message.
+     * @deny (update) User 'otherUserId' cannot update User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's chat message.
+     * @allow (delete) User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2' can delete their own chat message.
+     * @deny (delete) User 'otherUserId' cannot delete User 'mx4fVyMm4FVxwP5mie7J5Lbf6Pu2's chat message.
+     * @principle Enforces path-based ownership.
+     */
+        match /users/{userId}/chatMessages/{chatMessageId} {
+            allow create: if isSignedIn() && isOwner(userId);
+            allow get: if isSignedIn() && isOwner(userId);
+            allow list: if isSignedIn() && isOwner(userId);
+            allow update: if isSignedIn() && isExistingOwner(userId);
+            allow delete: if isSignedIn() && isExistingOwner(userId);
+        }
+  }
 
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
 
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
   }
 }
