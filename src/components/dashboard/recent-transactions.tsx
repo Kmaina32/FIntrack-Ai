@@ -1,8 +1,19 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatCurrency } from '@/lib/utils';
 import type { Transaction } from '@/lib/types';
+import { format } from 'date-fns';
 
 export function RecentTransactions({ transactions }: { transactions: Transaction[]}) {
+
+  const formatDate = (date: any) => {
+    if (!date) return 'N/A';
+    if (date.toDate) { // Firebase Timestamp
+      return format(date.toDate(), 'dd MMM, yyyy');
+    }
+    return format(new Date(date), 'dd MMM, yyyy');
+  }
+
+
   return (
     <div className="space-y-8">
       {transactions.map((transaction) => (
@@ -15,11 +26,11 @@ export function RecentTransactions({ transactions }: { transactions: Transaction
               {transaction.description}
             </p>
             <p className="text-sm text-muted-foreground">
-              {transaction.category}
+              {formatDate(transaction.date)}
             </p>
           </div>
           <div className={`ml-auto font-medium ${transaction.type === 'Income' ? 'text-green-600' : ''}`}>
-            {transaction.type === 'Income' ? '+' : ''}
+            {transaction.amount > 0 ? '+' : ''}
             {formatCurrency(transaction.amount)}
           </div>
         </div>

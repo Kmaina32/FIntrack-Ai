@@ -25,11 +25,13 @@ import { PlusCircle } from 'lucide-react';
 import { transactionCategories } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
 import { handleAddTransaction } from '@/lib/actions';
+import { useAuth } from '@/firebase';
 
 export function AddTransactionSheet() {
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const auth = useAuth();
 
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -39,6 +41,17 @@ export function AddTransactionSheet() {
     const amount = parseFloat(formData.get('amount') as string);
     const type = formData.get('type') as 'Income' | 'Expense';
     const category = formData.get('category') as string;
+    
+    if (!auth?.currentUser) {
+       toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You must be logged in to add a transaction.",
+      });
+      return;
+    }
+    
+    const idToken = await auth.currentUser.getIdToken();
 
     try {
       await handleAddTransaction({
@@ -47,7 +60,7 @@ export function AddTransactionSheet() {
         type,
         category,
         date: new Date(),
-      });
+      }, idToken);
       
       toast({
         title: "Transaction Added",
@@ -55,7 +68,10 @@ export function AddTransactionSheet() {
       });
 
       formRef.current?.reset();
-      closeButtonRef.current?.click();
+      // Programmatically click the close button
+      if(closeButtonRef.current) {
+        closeButtonRef.current.click();
+      }
 
     } catch (error) {
        toast({
@@ -98,7 +114,7 @@ export function AddTransactionSheet() {
               <Label htmlFor="type" className="text-right">
                 Type
               </Label>
-               <Select name="type" required>
+               <Select name="type" required defaultValue="Expense">
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -128,12 +144,11 @@ export function AddTransactionSheet() {
           </div>
           <SheetFooter>
             <SheetClose asChild>
-                <Button type="button" variant="ghost">Cancel</Button>
+                <Button type="button" variant="ghost" ref={closeButtonRef}>Cancel</Button>
             </SheetClose>
             <Button type="submit">Save Transaction</Button>
           </SheetFooter>
         </form>
-        <SheetClose ref={closeButtonRef} className="hidden" />
       </SheetContent>
     </Sheet>
   );

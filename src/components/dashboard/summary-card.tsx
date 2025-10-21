@@ -12,13 +12,15 @@ export function SummaryCard({ title, value, change, period }: SummaryCardData) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{formatCurrency(value)}</div>
-        <p className="text-xs text-muted-foreground">
-          <span className={change >= 0 ? "text-green-600" : "text-red-600"}>
-            {change >= 0 ? "+" : ""}
-            {change.toFixed(1)}%
-          </span>
-          {` ${period}`}
-        </p>
+        {change !== undefined && (
+           <p className="text-xs text-muted-foreground">
+            <span className={change >= 0 ? "text-green-600" : "text-red-600"}>
+              {change >= 0 ? "+" : ""}
+              {change.toFixed(1)}%
+            </span>
+            {` ${period}`}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

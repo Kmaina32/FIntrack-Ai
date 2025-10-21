@@ -8,6 +8,7 @@ import { collection, query, where, limit, orderBy } from "firebase/firestore";
 import type { Transaction, SummaryCardData } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { subMonths, startOfMonth, endOfMonth } from "date-fns";
 
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
@@ -16,31 +17,55 @@ export default function DashboardPage() {
     user ? query(
       collection(firestore, `users/${user.uid}/transactions`),
       orderBy('date', 'desc'),
-      limit(20)
+      limit(100) // Fetch more transactions for calculations
     ) : null
   , [firestore, user]);
 
   const { data: transactions, isLoading: transactionsLoading } = useCollection<Transaction>(transactionsQuery);
 
-  const [summaryCards, setSummaryCards] = useState<SummaryCardData[]>([
-    { title: 'Total Revenue', value: 0, change: 0, period: 'from last month' },
-    { title: 'Total Expenses', value: 0, change: 0, period: 'from last month' },
-    { title: 'Net Income', value: 0, change: 0, period: 'from last month' },
-    { title: 'Cash Flow', value: 0, change: 0, period: 'from last month' },
-  ]);
+  const [summaryCards, setSummaryCards] = useState<SummaryCardData[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     if (transactions) {
-      const totalRevenue = transactions.filter(t => t.type === 'Income').reduce((acc, t) => acc + t.amount, 0);
-      const totalExpenses = transactions.filter(t => t.type === 'Expense').reduce((acc, t) => acc + t.amount, 0);
-      const netIncome = totalRevenue - totalExpenses;
+      const now = new Date();
+      const thisMonthStart = startOfMonth(now);
+      const lastMonthStart = startOfMonth(subMonths(now, 1));
+      const lastMonthEnd = endOfMonth(subMonths(now, 1));
+
+      const thisMonthTransactions = transactions.filter(t => {
+        const date = t.date instanceof Date ? t.date : new Date((t.date as any).seconds * 1000);
+        return date >= thisMonthStart;
+      });
+
+      const lastMonthTransactions = transactions.filter(t => {
+        const date = t.date instanceof Date ? t.date : new Date((t.date as any).seconds * 1000);
+        return date >= lastMonthStart && date <= lastMonthEnd;
+      });
+
+      // This month's calculations
+      const totalRevenue = thisMonthTransactions.filter(t => t.amount > 0).reduce((acc, t) => acc + t.amount, 0);
+      const totalExpenses = thisMonthTransactions.filter(t => t.amount < 0).reduce((acc, t) => acc + t.amount, 0);
       
+      // Last month's calculations
+      const lastMonthRevenue = lastMonthTransactions.filter(t => t.amount > 0).reduce((acc, t) => acc + t.amount, 0);
+      const lastMonthExpenses = lastMonthTransactions.filter(t => t.amount < 0).reduce((acc, t) => acc + t.amount, 0);
+
+      const calculateChange = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+      };
+
+      const netIncome = totalRevenue + totalExpenses;
+
       setSummaryCards([
-        { title: 'Total Revenue', value: totalRevenue, change: 0, period: 'this month' },
-        { title: 'Total Expenses', value: totalExpenses, change: 0, period: 'this month' },
-        { title: 'Net Income', value: netIncome, change: 0, period: 'this month' },
-        { title: 'Cash Flow', value: netIncome, change: 0, period: 'this month' },
+        { title: 'Total Revenue', value: totalRevenue, change: calculateChange(totalRevenue, lastMonthRevenue), period: 'from last month' },
+        { title: 'Total Expenses', value: Math.abs(totalExpenses), change: calculateChange(Math.abs(totalExpenses), Math.abs(lastMonthExpenses)), period: 'from last month' },
+        { title: 'Net Income', value: netIncome, change: calculateChange(netIncome, lastMonthRevenue + lastMonthExpenses), period: 'from last month' },
+        { title: 'Cash Flow', value: netIncome, change: calculateChange(netIncome, lastMonthRevenue + lastMonthExpenses), period: 'from last month' },
       ]);
+
+      setRecentTransactions(thisMonthTransactions.slice(0, 5));
     }
   }, [transactions]);
 
@@ -53,7 +78,7 @@ export default function DashboardPage() {
         </h1>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {transactionsLoading ? (
+        {transactionsLoading || summaryCards.length === 0 ? (
           <>
             <Skeleton className="h-[126px]" />
             <Skeleton className="h-[126px]" />
@@ -79,11 +104,11 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="font-headline">Recent Transactions</CardTitle>
             <CardDescription>
-              {transactions && `You made ${transactions.length} transactions this month.`}
+              {transactions && `You have ${recentTransactions.length} recent transactions.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {transactionsLoading ? <Skeleton className="h-[300px]" /> : <RecentTransactions transactions={transactions?.slice(0, 5) || []} />}
+            {transactionsLoading ? <Skeleton className="h-[300px]" /> : <RecentTransactions transactions={recentTransactions} />}
           </CardContent>
         </Card>
       </div>

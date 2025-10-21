@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { handleAiCategorize, handleUpdateTransactionCategory } from '@/lib/actions';
+import { useAuth } from '@/firebase';
 
 const PAGE_SIZE = 10;
 
@@ -33,6 +34,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   const [currentPage, setCurrentPage] = React.useState(1);
   const [loadingCategoryId, setLoadingCategoryId] = React.useState<string | null>(null);
   const { toast } = useToast();
+  const auth = useAuth();
 
   React.useEffect(() => {
     setTransactions(initialTransactions);
@@ -53,7 +55,6 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
       try {
         const result = await handleAiCategorize({
           transactionDescription: transaction.description,
-          // You might want to provide better examples for categorization
           previousCategories: initialTransactions.slice(0, 10).map(t => ({ description: t.description, category: t.category })),
         });
         
@@ -83,7 +84,11 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   
   const updateTransactionCategory = async (transactionId: string, category: string) => {
      try {
-      await handleUpdateTransactionCategory(transactionId, category);
+       if (!auth?.currentUser) {
+         throw new Error("User not authenticated");
+       }
+       const idToken = await auth.currentUser.getIdToken();
+      await handleUpdateTransactionCategory(transactionId, category, idToken);
       // The local state will be updated via the real-time listener,
       // so we don't need to call setTransactions here anymore.
     } catch (error) {
@@ -157,7 +162,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
                     </Select>
                   )}
                 </TableCell>
-                <TableCell className={`text-right font-medium ${transaction.type === 'Income' ? 'text-green-600' : ''}`}>
+                <TableCell className={`text-right font-medium ${transaction.amount > 0 ? 'text-green-600' : ''}`}>
                   {formatCurrency(transaction.amount)}
                 </TableCell>
               </TableRow>

@@ -13,14 +13,13 @@ import { formatCurrency } from '@/lib/utils';
 import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import type { Transaction } from '@/lib/types';
 import { useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 const chartConfig = {
   total: {
     label: "Total",
-    color: "hsl(var(--primary))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function OverviewChart({ transactions }: { transactions: Transaction[]}) {
   const overviewChartData = useMemo(() => {
@@ -35,12 +34,12 @@ export function OverviewChart({ transactions }: { transactions: Transaction[]}) 
     }));
 
     transactions.forEach(t => {
-      const transactionDate = t.date instanceof Date ? t.date : new Date(t.date as string);
+      const transactionDate = t.date instanceof Date ? t.date : new Date((t.date as any).seconds * 1000);
       if (transactionDate >= start && transactionDate <= end) {
         const dayOfMonth = format(transactionDate, 'MMM dd');
         const dataPoint = monthlyData.find(d => d.name === dayOfMonth);
         if (dataPoint) {
-            dataPoint.total += t.type === 'Income' ? t.amount : -t.amount;
+            dataPoint.total += t.amount;
         }
       }
     });

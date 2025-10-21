@@ -10,14 +10,11 @@ import type { Transaction } from "./types";
 import { FieldValue } from "firebase-admin/firestore";
 
 
-async function getUserId(): Promise<string> {
-  const { auth } = getFirebaseAdmin();
-  const idToken = headers().get('Authorization')?.split('Bearer ')[1];
-
+async function getUserId(idToken: string | null | undefined): Promise<string> {
   if (!idToken) {
-    throw new Error('User not authenticated');
+    throw new Error('User not authenticated, no ID token provided.');
   }
-
+  const { auth } = getFirebaseAdmin();
   try {
     const decodedToken: DecodedIdToken = await auth.verifyIdToken(idToken);
     return decodedToken.uid;
@@ -25,6 +22,11 @@ async function getUserId(): Promise<string> {
     console.error("Error verifying ID token:", error);
     throw new Error("Invalid authentication token.");
   }
+}
+
+async function getUserIdFromHeaders(): Promise<string> {
+  const idToken = headers().get('Authorization')?.split('Bearer ')[1];
+  return getUserId(idToken);
 }
 
 export async function handleAiCategorize(
@@ -39,8 +41,8 @@ export async function handleAiCategorize(
   }
 }
 
-export async function handleUpdateTransactionCategory(transactionId: string, category: string) {
-  const userId = await getUserId();
+export async function handleUpdateTransactionCategory(transactionId: string, category: string, idToken: string) {
+  const userId = await getUserId(idToken);
   const { db } = getFirebaseAdmin();
 
   try {
@@ -54,13 +56,14 @@ export async function handleUpdateTransactionCategory(transactionId: string, cat
   }
 }
 
-export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>) {
-    const userId = await getUserId();
+export async function handleAddTransaction(transaction: Omit<Transaction, 'id'>, idToken: string) {
+    const userId = await getUserId(idToken);
     const { db } = getFirebaseAdmin();
     
     try {
         const newTransaction = {
             ...transaction,
+            amount: transaction.type === 'Expense' ? -Math.abs(transaction.amount) : Math.abs(transaction.amount),
             date: FieldValue.serverTimestamp()
         };
 

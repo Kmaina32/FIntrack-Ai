@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInAnonymously,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +25,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/logo';
 
+function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 48 48"
+        width="24px"
+        height="24px"
+        {...props}
+      >
+        <path
+          fill="#FFC107"
+          d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+        />
+        <path
+          fill="#FF3D00"
+          d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+        />
+        <path
+          fill="#4CAF50"
+          d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.658-3.301-11.303-7.812l-6.571,4.819C9.656,39.663,16.318,44,24,44z"
+        />
+        <path
+          fill="#1976D2"
+          d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.638,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+        />
+      </svg>
+    )
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,6 +63,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
+    if (!auth) return;
     setLoading(true);
     try {
       if (action === 'login') {
@@ -52,6 +84,7 @@ export default function LoginPage() {
   };
   
   const handleAnonymousSignIn = async () => {
+    if (!auth) return;
     setLoading(true);
     try {
       await signInAnonymously(auth);
@@ -66,6 +99,25 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
+
+  const handleGoogleSignIn = async () => {
+    if (!auth) return;
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Google Sign-In Failed',
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
@@ -154,12 +206,20 @@ export default function LoginPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      <div className="mt-4 text-center text-sm text-muted-foreground">
-        Or
+      <div className="relative my-4 h-[1px] w-[400px] bg-border">
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-sm text-muted-foreground">
+          OR
+        </span>
       </div>
-      <Button variant="link" onClick={handleAnonymousSignIn} disabled={loading}>
-        Continue as Guest
-      </Button>
+       <div className='w-[400px] flex flex-col gap-2'>
+        <Button variant="outline" onClick={handleGoogleSignIn} disabled={loading} className='w-full'>
+            <GoogleIcon className="mr-2 h-4 w-4" />
+            Continue with Google
+        </Button>
+        <Button variant="link" onClick={handleAnonymousSignIn} disabled={loading}>
+            Continue as Guest
+        </Button>
+      </div>
     </div>
   );
 }
