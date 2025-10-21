@@ -260,10 +260,10 @@ export default function LoginPage() {
       </div>
       <div className="hidden bg-muted lg:block relative">
         <Image
-          src="https://picsum.photos/seed/3/1200/1800"
+          src="https://picsum.photos/seed/3/1200/1080"
           alt="Abstract art with financial charts"
           width="1200"
-          height="1800"
+          height="1080"
           className="h-full w-full object-cover dark:brightness-[0.3]"
           data-ai-hint="financial abstract"
         />
