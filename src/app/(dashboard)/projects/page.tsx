@@ -6,6 +6,7 @@ import type { Project } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectsTable } from "@/components/projects/projects-table";
 import { AddProjectSheet } from "@/components/projects/add-project-sheet";
+import { DashboardHeader } from "@/components/dashboard-header";
 
 export default function ProjectsPage() {
   const { firestore, user } = useFirebase();
@@ -21,14 +22,9 @@ export default function ProjectsPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">
-          Projects
-        </h1>
-        <div className="flex items-center space-x-2">
-          <AddProjectSheet />
-        </div>
-      </div>
+      <DashboardHeader title="Projects">
+        <AddProjectSheet />
+      </DashboardHeader>
       {isLoading ? (
         <div className="space-y-2">
             <Skeleton className="h-12 w-full" />
@@ -42,5 +38,3 @@ export default function ProjectsPage() {
       )}
     </div>
   );
-}
-    

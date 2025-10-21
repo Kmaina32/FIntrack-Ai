@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { exportToPDF, exportToExcel } from "@/lib/export";
 import { Report } from "@/lib/types";
+import { DashboardHeader } from "@/components/dashboard-header";
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('income-statement');
@@ -29,25 +30,20 @@ export default function ReportsPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">
-          Reports
-        </h1>
-        <div className="flex items-center space-x-2">
-           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleExport('pdf')}>Export as PDF</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('excel')}>Export as Excel</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      <DashboardHeader title="Reports">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleExport('pdf')}>Export as PDF</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleExport('excel')}>Export as Excel</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </DashboardHeader>
       <ReportsTabs 
         onTabChange={setActiveTab} 
         onDataLoad={setReportsData}

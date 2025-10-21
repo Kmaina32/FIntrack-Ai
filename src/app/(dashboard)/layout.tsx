@@ -43,7 +43,9 @@ export default function DashboardLayout({
       <Sidebar collapsible="icon">
         <AppSidebar />
       </Sidebar>
-      <SidebarInset>{children}</SidebarInset>
+      <SidebarInset>
+        {children}
+      </SidebarInset>
       <Chatbot />
     </SidebarProvider>
   );

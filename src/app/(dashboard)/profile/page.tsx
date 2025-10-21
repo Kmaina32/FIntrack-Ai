@@ -12,14 +12,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Moon, Sun } from 'lucide-react';
+import { DashboardHeader } from '@/components/dashboard-header';
 
 export default function ProfilePage() {
   const { user } = useUser();
@@ -27,7 +21,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
-      <h1 className="text-3xl font-bold tracking-tight font-headline">Profile</h1>
+      <DashboardHeader title="Profile" />
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <Card>

@@ -9,6 +9,7 @@ import type { Transaction, SummaryCardData } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { DashboardHeader } from "@/components/dashboard-header";
 
 export default function DashboardPage() {
   const { firestore, user } = useFirebase();
@@ -72,11 +73,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight font-headline">
-          Dashboard
-        </h1>
-      </div>
+      <DashboardHeader title="Dashboard" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {transactionsLoading || summaryCards.length === 0 ? (
           <>
