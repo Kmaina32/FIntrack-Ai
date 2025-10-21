@@ -16,9 +16,12 @@ import {
   LayoutDashboard,
   ArrowLeftRight,
   BarChart3,
+  LogOut,
 } from 'lucide-react';
-import { user } from '@/lib/mock-data';
 import { Logo } from '@/components/logo';
+import { useAuth, useUser } from '@/firebase';
+import { Button } from './ui/button';
+import { signOut } from 'firebase/auth';
 
 const menuItems = [
   {
@@ -40,6 +43,14 @@ const menuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const auth = useAuth();
+
+  const handleSignOut = () => {
+    if (auth) {
+      signOut(auth);
+    }
+  };
 
   return (
     <>
@@ -70,15 +81,20 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="flex items-center gap-2 p-2 rounded-md bg-sidebar-accent">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person portrait" />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col text-sm">
-            <span className="font-semibold text-sidebar-accent-foreground">{user.name}</span>
-            <span className="text-muted-foreground">{user.email}</span>
+        <div className="flex items-center justify-between p-2 rounded-md bg-sidebar-accent">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-9 w-9">
+              {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'user'} data-ai-hint="person portrait" />}
+              <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col text-sm">
+              <span className="font-semibold text-sidebar-accent-foreground">{user?.displayName || 'User'}</span>
+              <span className="text-muted-foreground">{user?.email}</span>
+            </div>
           </div>
+          <Button variant="ghost" size="icon" onClick={handleSignOut} className="h-8 w-8">
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </SidebarFooter>
     </>

@@ -19,12 +19,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Transaction } from '@/lib/types';
-import { transactionCategories, transactions as mockTransactions } from '@/lib/mock-data';
+import { transactionCategories } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { handleCategorizeTransaction } from '@/lib/actions';
+import { handleAiCategorize, handleUpdateTransactionCategory } from '@/lib/actions';
 
 const PAGE_SIZE = 10;
 
@@ -33,6 +33,10 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
   const [currentPage, setCurrentPage] = React.useState(1);
   const [loadingCategoryId, setLoadingCategoryId] = React.useState<string | null>(null);
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    setTransactions(initialTransactions);
+  }, [initialTransactions]);
 
   const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
   const paginatedTransactions = transactions.slice(
@@ -47,21 +51,23 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
     if (newCategory === 'auto') {
       setLoadingCategoryId(transactionId);
       try {
-        const result = await handleCategorizeTransaction({
+        const result = await handleAiCategorize({
           transactionDescription: transaction.description,
-          previousCategories: mockTransactions.map(t => ({ description: t.description, category: t.category })),
+          // You might want to provide better examples for categorization
+          previousCategories: initialTransactions.slice(0, 10).map(t => ({ description: t.description, category: t.category })),
         });
         
-        if ('category' in result && result.category) {
-          updateTransactionCategory(transactionId, result.category);
+        if (result && 'category' in result && result.category) {
+          await updateTransactionCategory(transactionId, result.category);
           toast({
             title: "Auto-Categorized!",
             description: `Transaction set to "${result.category}" with ${Math.round(result.confidence * 100)}% confidence.`,
           });
         } else {
-          throw new Error("AI categorization failed.");
+          throw new Error("AI categorization failed to return a category.");
         }
       } catch (error) {
+        console.error(error);
         toast({
           variant: "destructive",
           title: "AI Categorization Failed",
@@ -71,14 +77,23 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
         setLoadingCategoryId(null);
       }
     } else {
-      updateTransactionCategory(transactionId, newCategory);
+      await updateTransactionCategory(transactionId, newCategory);
     }
   };
   
-  const updateTransactionCategory = (transactionId: string, category: string) => {
-    setTransactions(prev =>
-      prev.map(t => (t.id === transactionId ? { ...t, category } : t))
-    );
+  const updateTransactionCategory = async (transactionId: string, category: string) => {
+     try {
+      await handleUpdateTransactionCategory(transactionId, category);
+      // The local state will be updated via the real-time listener,
+      // so we don't need to call setTransactions here anymore.
+    } catch (error) {
+      console.error("Failed to update transaction category:", error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Could not update the transaction category.",
+      });
+    }
   };
 
   const getCategoryVariant = (category: string) => {
@@ -96,6 +111,14 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
     }
   }
 
+  const formatDate = (date: any) => {
+    if (!date) return 'N/A';
+    if (date.toDate) { // Firebase Timestamp
+      return format(date.toDate(), 'dd MMM, yyyy');
+    }
+    return format(new Date(date), 'dd MMM, yyyy');
+  }
+
   return (
     <>
       <div className="rounded-md border">
@@ -111,7 +134,7 @@ export function TransactionsTable({ initialTransactions }: { initialTransactions
           <TableBody>
             {paginatedTransactions.map((transaction) => (
               <TableRow key={transaction.id}>
-                <TableCell className="font-medium">{format(new Date(transaction.date), 'dd MMM, yyyy')}</TableCell>
+                <TableCell className="font-medium">{formatDate(transaction.date)}</TableCell>
                 <TableCell>{transaction.description}</TableCell>
                 <TableCell>
                   {loadingCategoryId === transaction.id ? (

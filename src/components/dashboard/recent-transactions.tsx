@@ -1,13 +1,11 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { transactions } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
+import type { Transaction } from '@/lib/types';
 
-export function RecentTransactions() {
-  const recentTransactions = transactions.slice(0, 5);
-
+export function RecentTransactions({ transactions }: { transactions: Transaction[]}) {
   return (
     <div className="space-y-8">
-      {recentTransactions.map((transaction) => (
+      {transactions.map((transaction) => (
         <div key={transaction.id} className="flex items-center">
           <Avatar className="h-9 w-9">
             <AvatarFallback>{transaction.description.charAt(0)}</AvatarFallback>

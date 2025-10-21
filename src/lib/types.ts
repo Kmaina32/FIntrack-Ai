@@ -1,10 +1,13 @@
+import { Timestamp } from "firebase/firestore";
+
 export type Transaction = {
   id: string;
-  date: string;
+  date: Timestamp | Date | string;
   description: string;
   amount: number;
   type: 'Income' | 'Expense';
   category: string;
+  bankAccountId?: string;
 };
 
 export type SummaryCardData = {
@@ -24,7 +27,23 @@ export type Report = {
 };
 
 export type User = {
-  name: string;
+  id: string;
   email: string;
-  avatarUrl: string;
+  name?: string;
+  avatarUrl?: string;
+};
+
+export type BankAccount = {
+  id: string;
+  userId: string;
+  accountName: string;
+  accountNumber: string;
+  bankName: string;
+};
+
+export type Category = {
+    id: string;
+    userId: string;
+    name: string;
+    description: string;
 };

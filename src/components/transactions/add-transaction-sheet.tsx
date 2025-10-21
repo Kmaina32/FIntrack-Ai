@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import {
   Sheet,
   SheetContent,
@@ -23,20 +24,46 @@ import {
 import { PlusCircle } from 'lucide-react';
 import { transactionCategories } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
+import { handleAddTransaction } from '@/lib/actions';
 
 export function AddTransactionSheet() {
   const { toast } = useToast();
+  const formRef = React.useRef<HTMLFormElement>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // In a real app, you would handle form submission to a server action.
-    // For this MVP, we'll just show a success toast.
-    toast({
-      title: "Transaction Added",
-      description: "Your new transaction has been successfully recorded.",
-    });
-    // This is where a <SheetClose> would be programmatically triggered.
-    // Since we don't have a ref to it, a manual close is needed.
+    const formData = new FormData(event.currentTarget);
+    const description = formData.get('description') as string;
+    const amount = parseFloat(formData.get('amount') as string);
+    const type = formData.get('type') as 'Income' | 'Expense';
+    const category = formData.get('category') as string;
+
+    try {
+      await handleAddTransaction({
+        description,
+        amount: type === 'Expense' ? -Math.abs(amount) : Math.abs(amount),
+        type,
+        category,
+        date: new Date(),
+      });
+      
+      toast({
+        title: "Transaction Added",
+        description: "Your new transaction has been successfully recorded.",
+      });
+
+      formRef.current?.reset();
+      closeButtonRef.current?.click();
+
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add transaction.",
+      });
+    }
   };
 
   return (
@@ -47,7 +74,7 @@ export function AddTransactionSheet() {
         </Button>
       </SheetTrigger>
       <SheetContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} ref={formRef}>
           <SheetHeader>
             <SheetTitle className="font-headline">Add Transaction</SheetTitle>
             <SheetDescription>
@@ -59,25 +86,25 @@ export function AddTransactionSheet() {
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>
-              <Input id="description" placeholder="e.g. Office supplies" className="col-span-3" required/>
+              <Input name="description" id="description" placeholder="e.g. Office supplies" className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="amount" className="text-right">
                 Amount
               </Label>
-              <Input id="amount" type="number" placeholder="0.00" className="col-span-3" required/>
+              <Input name="amount" id="amount" type="number" step="0.01" placeholder="0.00" className="col-span-3" required/>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
                 Type
               </Label>
-              <Select required>
+               <Select name="type" required>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="Income">Income</SelectItem>
+                  <SelectItem value="Expense">Expense</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -85,7 +112,7 @@ export function AddTransactionSheet() {
               <Label htmlFor="category" className="text-right">
                 Category
               </Label>
-              <Select required>
+              <Select name="category" required>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -101,10 +128,12 @@ export function AddTransactionSheet() {
           </div>
           <SheetFooter>
             <SheetClose asChild>
-              <Button type="submit">Save Transaction</Button>
+                <Button type="button" variant="ghost">Cancel</Button>
             </SheetClose>
+            <Button type="submit">Save Transaction</Button>
           </SheetFooter>
         </form>
+        <SheetClose ref={closeButtonRef} className="hidden" />
       </SheetContent>
     </Sheet>
   );

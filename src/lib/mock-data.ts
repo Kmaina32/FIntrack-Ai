@@ -2,6 +2,7 @@ import type { Transaction, Report, SummaryCardData, User } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export const user: User = {
+  id: '1',
   name: 'Alex Doe',
   email: 'alex.doe@example.com',
   avatarUrl: PlaceHolderImages.find(img => img.id === 'user-avatar')?.imageUrl || '',

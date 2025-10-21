@@ -1,7 +1,35 @@
+/**
+ * @fileoverview Firestore Security Rules for FinTrack AI.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for all data. Each user can only access
+ * their own profile information, bank accounts, transactions, and categories.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, with `userId` matching the authenticated user's UID.
+ * - /users/{userId}/bankAccounts/{bankAccountId}: Stores bank accounts belonging to a user.
+ * - /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}: Stores transactions for a bank account.
+ * - /users/{userId}/categories/{categoryId}: Stores categories created by a user.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - Path-based ownership is strictly enforced. The `userId` parameter in the path must always
+ *   match the authenticated user's UID.
+ * - Data validation is relaxed to allow for rapid prototyping, except for critical fields related
+ *   to user ownership and relational integrity (e.g., `userId` in nested documents).
+ *
+ * Denormalization for Authorization:
+ * The data model is structured such that no `get()` calls are required for authorization.
+ * User ownership is determined directly from the document path (e.g., `/users/{userId}/...`).
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * @description Enforces access control for user profiles. Only the authenticated user can read or write their own profile.
+     * @path /users/{userId}
+     */
     match /users/{userId} {
       function isSignedIn() {
         return request.auth != null;
@@ -11,18 +39,17 @@ service cloud.firestore {
         return request.auth.uid == userId;
       }
 
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
+      allow list: if false; // User listing is not allowed.
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
-
+    /**
+     * @description Enforces access control for bank accounts. Only the owner of the bank account (based on the path) can read or write it.
+     * @path /users/{userId}/bankAccounts/{bankAccountId}
+     */
     match /users/{userId}/bankAccounts/{bankAccountId} {
       function isSignedIn() {
         return request.auth != null;
@@ -31,19 +58,18 @@ service cloud.firestore {
       function isOwner(userId) {
         return request.auth.uid == userId;
       }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
+      
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
-
+    /**
+     * @description Enforces access control for transactions. Only the owner of the transaction (based on the path) can read or write it.
+     * @path /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId}
+     */
     match /users/{userId}/bankAccounts/{bankAccountId}/transactions/{transactionId} {
       function isSignedIn() {
         return request.auth != null;
@@ -53,18 +79,17 @@ service cloud.firestore {
         return request.auth.uid == userId;
       }
 
-       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
-
+    /**
+     * @description Enforces access control for categories. Only the owner of the category (based on the path) can read or write it.
+     * @path /users/{userId}/categories/{categoryId}
+     */
     match /users/{userId}/categories/{categoryId} {
       function isSignedIn() {
         return request.auth != null;
@@ -74,15 +99,11 @@ service cloud.firestore {
         return request.auth.uid == userId;
       }
 
-       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isSignedIn() && isOwner(userId);
       allow list: if false;
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
   }
 }

@@ -15,7 +15,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { handleAiQuery } from '@/lib/actions';
-import { transactions, summaryCards } from '@/lib/mock-data';
+import { useCollection, useFirebase, useMemoFirebase } from '@/firebase';
+import { collection, query, limit } from 'firebase/firestore';
+import type { Transaction } from '@/lib/types';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -26,6 +28,18 @@ export function Chatbot() {
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const { firestore, user } = useFirebase();
+
+  const transactionsQuery = useMemoFirebase(() => 
+    user ? query(
+      collection(firestore, `users/${user.uid}/transactions`),
+      limit(20)
+    ) : null,
+    [firestore, user]
+  );
+  
+  const { data: transactions } = useCollection<Transaction>(transactionsQuery);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,8 +53,7 @@ export function Chatbot() {
     try {
       // Create a string of financial data to pass to the AI
       const financialDataString = `
-        Summary: ${JSON.stringify(summaryCards)}
-        Transactions: ${JSON.stringify(transactions.slice(0, 10))}
+        Transactions: ${JSON.stringify(transactions, null, 2)}
       `;
 
       const result = await handleAiQuery({ query: input, financialData: financialDataString });
@@ -87,6 +100,14 @@ export function Chatbot() {
         </SheetHeader>
         <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
           <div className="space-y-4 pr-4">
+             <div className="flex justify-start gap-3 text-sm">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback><Bot size={20}/></AvatarFallback>
+                </Avatar>
+                <div className="rounded-lg px-3 py-2 bg-muted">
+                    <p>Welcome! How can I help you with your finances today?</p>
+                </div>
+              </div>
             {messages.map((message, index) => (
               <div
                 key={index}

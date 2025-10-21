@@ -9,9 +9,11 @@ import {
   Tooltip,
   CartesianGrid
 } from 'recharts';
-import { overviewChartData } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
 import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart';
+import type { Transaction } from '@/lib/types';
+import { useMemo } from 'react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, subMonths } from 'date-fns';
 
 const chartConfig = {
   total: {
@@ -20,9 +22,35 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function OverviewChart() {
+export function OverviewChart({ transactions }: { transactions: Transaction[]}) {
+  const overviewChartData = useMemo(() => {
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    const daysInMonth = eachDayOfInterval({ start, end });
+
+    const monthlyData = daysInMonth.map(day => ({
+        name: format(day, 'MMM dd'),
+        total: 0,
+    }));
+
+    transactions.forEach(t => {
+      const transactionDate = t.date instanceof Date ? t.date : new Date(t.date as string);
+      if (transactionDate >= start && transactionDate <= end) {
+        const dayOfMonth = format(transactionDate, 'MMM dd');
+        const dataPoint = monthlyData.find(d => d.name === dayOfMonth);
+        if (dataPoint) {
+            dataPoint.total += t.type === 'Income' ? t.amount : -t.amount;
+        }
+      }
+    });
+
+    return monthlyData;
+
+  }, [transactions]);
+
   return (
-    <ChartContainer config={chartConfig}>
+    <ChartContainer config={chartConfig} className='h-[350px] w-full'>
       <ResponsiveContainer width="100%" height={350}>
         <BarChart data={overviewChartData}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -32,6 +60,7 @@ export function OverviewChart() {
             fontSize={12}
             tickLine={false}
             axisLine={false}
+            tickFormatter={(value, index) => index % 5 === 0 ? value : ''}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
