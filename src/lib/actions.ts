@@ -49,7 +49,7 @@ export async function handleUpdateTransactionCategory(transactionId: string, acc
   try {
     const transactionRef = db.collection('users').doc(userId).collection('transactions').doc(transactionId);
     await transactionRef.update({ account });
-    revalidatePath("/transactions");
+    // The revalidatePath is removed as real-time listeners handle UI updates.
     return { success: true };
   } catch (error) {
     console.error("Error updating transaction account:", error);
