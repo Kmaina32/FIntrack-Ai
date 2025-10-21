@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -54,12 +55,12 @@ function FeatureCard({
 
 function StatCard({ icon, value, label }: { icon: React.ReactNode, value: string, label: string }) {
     return (
-        <div className="bg-white/10 backdrop-blur-sm p-4 md:p-6 rounded-lg text-white flex flex-col items-center text-center">
-            <div className="text-accent mb-2">
+        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg text-white flex flex-col items-center text-center">
+            <div className="text-accent mb-1">
                 {icon}
             </div>
-            <p className="text-3xl md:text-4xl font-bold font-headline">{value}</p>
-            <p className="text-white/80 uppercase text-xs md:text-sm tracking-widest">{label}</p>
+            <p className="text-xl md:text-4xl font-bold font-headline">{value}</p>
+            <p className="text-white/80 uppercase text-xs tracking-widest">{label}</p>
         </div>
     )
 }
@@ -129,11 +130,11 @@ export default function LandingPage() {
                 </div>
             </div>
             {/* Stats Overlay */}
-            <div className="w-full pb-8 md:pb-12">
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 max-w-4xl mx-auto">
-                    <StatCard icon={<Users className="h-8 w-8 md:h-10 md:w-10"/>} value="10,000+" label="Active Users" />
-                    <StatCard icon={<FileText className="h-8 w-8 md:h-10 md:w-10"/>} value="500k+" label="Invoices Generated" />
-                    <StatCard icon={<TrendingUp className="h-8 w-8 md:h-10 md:w-10"/>} value="1.2M+" label="Transactions" />
+            <div className="w-full pb-4 md:pb-12">
+                 <div className="grid grid-cols-3 gap-2 md:gap-8 max-w-4xl mx-auto">
+                    <StatCard icon={<Users className="h-6 w-6 md:h-10 md:w-10"/>} value="10k+" label="Users" />
+                    <StatCard icon={<FileText className="h-6 w-6 md:h-10 md:w-10"/>} value="500k+" label="Invoices" />
+                    <StatCard icon={<TrendingUp className="h-6 w-6 md:h-10 md:w-10"/>} value="1.2M+" label="Transactions" />
                 </div>
             </div>
           </div>
