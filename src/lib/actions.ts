@@ -190,5 +190,3 @@ export async function handleProcessSale(sale: Omit<Sale, 'id' | 'userId'>, idTok
     throw new Error("Failed to process sale.");
   }
 }
-
-    

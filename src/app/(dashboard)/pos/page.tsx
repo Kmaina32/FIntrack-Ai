@@ -167,7 +167,7 @@ export default function POSPage() {
   const tax = subtotal * TAX_RATE;
   const total = subtotal + tax;
 
-  const handleProcessSale = async () => {
+  const processSale = async () => {
     if (cart.length === 0) return;
     setIsProcessing(true);
     try {
@@ -269,7 +269,7 @@ export default function POSPage() {
                   <span>Total</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
-                 <Button className="w-full mt-4" size="lg" disabled={cart.length === 0 || isProcessing} onClick={handleProcessSale}>
+                 <Button className="w-full mt-4" size="lg" disabled={cart.length === 0 || isProcessing} onClick={processSale}>
                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Process Sale
                  </Button>
